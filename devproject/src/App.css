@@ -1,42 +1,87 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Container */
+.exercise-container {
+	padding: 2rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	font-family: sans-serif;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Titel */
+.exercise-title {
+	font-size: 2rem;
+	font-weight: bold;
+	margin-bottom: 2rem;
+	text-align: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Grid */
+.exercise-grid {
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Card */
+.exercise-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 1rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	border: 1px solid #eaeaea;
+	display: flex;
+	flex-direction: column;
 }
 
-.card {
-  padding: 2em;
+/* Afbeelding */
+.exercise-image {
+	width: 100%;
+	height: 200px;
+	object-fit: contain;
+	background-color: #f3f3f3;
+	margin-bottom: 1rem;
+	border-radius: 8px;
 }
 
-.read-the-docs {
-  color: #888;
+/* Placeholder (geen afbeelding) */
+.exercise-image.placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #888;
+	font-size: 0.9rem;
+}
+
+/* Naam */
+.exercise-name {
+	font-size: 1.2rem;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+}
+
+/* Beschrijving */
+.exercise-description {
+	font-size: 0.9rem;
+	color: #444;
+	margin-bottom: 0.75rem;
+	line-height: 1.4;
+}
+
+/* Extra info */
+.exercise-info {
+	font-size: 0.85rem;
+	margin-bottom: 0.4rem;
+	color: #333;
+}
+
+.exercise-description.italic {
+	font-style: italic;
+	color: #777;
+}
+
+/* Laadtekst */
+.loading-text {
+	text-align: center;
+	margin-top: 3rem;
+	font-size: 1.1rem;
+	color: #555;
 }
