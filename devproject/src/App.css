@@ -1,0 +1,131 @@
+/* Container */
+.exercise-container {
+	padding: 2rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	font-family: sans-serif;
+}
+
+/* Titel */
+.exercise-title {
+	font-size: 2rem;
+	font-weight: bold;
+	margin-bottom: 2rem;
+	text-align: center;
+}
+
+/* Grid */
+.exercise-grid {
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Card */
+.exercise-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 1rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	border: 1px solid #eaeaea;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Video */
+.exercise-video {
+	width: 100%;
+	height: 200px;
+	background-color: #000;
+	margin-bottom: 1rem;
+	border-radius: 8px;
+	object-fit: cover;
+}
+
+/* Afbeelding (fallback) */
+.exercise-image {
+	width: 100%;
+	height: 200px;
+	object-fit: contain;
+	background-color: #f3f3f3;
+	margin-bottom: 1rem;
+	border-radius: 8px;
+}
+
+/* Placeholder (geen afbeelding/video) */
+.exercise-image.placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #888;
+	font-size: 0.9rem;
+}
+
+/* Naam */
+.exercise-name {
+	font-size: 1.2rem;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+}
+
+/* Beschrijving */
+.exercise-description {
+	font-size: 0.9rem;
+	color: #444;
+	margin-bottom: 0.75rem;
+	line-height: 1.4;
+}
+
+.exercise-description ol {
+	margin: 0;
+	padding-left: 1.5rem;
+}
+
+.exercise-description li {
+	margin-bottom: 0.3rem;
+}
+
+/* Extra info */
+.exercise-info {
+	font-size: 0.85rem;
+	margin-bottom: 0.4rem;
+	color: #333;
+}
+
+.exercise-description.italic {
+	font-style: italic;
+	color: #777;
+}
+
+/* Difficulty badges */
+.difficulty-beginner {
+	background-color: #d4edda;
+	color: #155724;
+	padding: 0.2rem 0.5rem;
+	border-radius: 4px;
+	font-weight: 600;
+}
+
+.difficulty-intermediate {
+	background-color: #fff3cd;
+	color: #856404;
+	padding: 0.2rem 0.5rem;
+	border-radius: 4px;
+	font-weight: 600;
+}
+
+.difficulty-advanced {
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 0.2rem 0.5rem;
+	border-radius: 4px;
+	font-weight: 600;
+}
+
+/* Laadtekst */
+.loading-text {
+	text-align: center;
+	margin-top: 3rem;
+	font-size: 1.1rem;
+	color: #555;
+}
