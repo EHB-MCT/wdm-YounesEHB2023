@@ -4,6 +4,9 @@ import UserEvent from "../models/UserEvent.js";
 const router = express.Router();
 
 router.post("/", async (req, res) => {
+	// 👇 ADD THIS — so you see events in your terminal
+	console.log("📩 Event received:", req.body);
+
 	try {
 		const { userId, action, data } = req.body;
 
@@ -22,7 +25,7 @@ router.post("/", async (req, res) => {
 		await event.save();
 		res.status(201).json({ success: true });
 	} catch (err) {
-		console.error("Error saving event:", err.message);
+		console.error("❌ Error saving event:", err.message);
 		res.status(500).json({ error: "Server error" });
 	}
 });
