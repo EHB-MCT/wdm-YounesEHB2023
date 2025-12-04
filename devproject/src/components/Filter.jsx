@@ -1,5 +1,5 @@
 import React from "react";
-import { trackEvent } from "../utils/trackEvent";
+import trackEvent from "../utils/trackEvent";
 
 export default function Filter({ filters, setFilters, allExercises }) {
 	const uniqueMuscleGroups = [

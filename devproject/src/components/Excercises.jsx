@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../App.css";
 import exercisesData from "./gym_exercises.json";
 import Filter from "./Filter";
-import { trackEvent } from "../utils/trackEvent";
+import trackEvent from "../utils/trackEvent";
 
 export default function Exercises() {
 	const [exercises, setExercises] = useState([]);
@@ -13,6 +13,7 @@ export default function Exercises() {
 		difficulty: "",
 	});
 
+	// Load exercises
 	useEffect(() => {
 		setExercises(exercisesData);
 		setLoading(false);
@@ -20,7 +21,7 @@ export default function Exercises() {
 
 	if (loading) return <p className="loading-text">Loading exercises...</p>;
 
-	// Apply filters
+	// Filtering logic
 	const filteredExercises = exercises.filter((ex) => {
 		const matchMuscle =
 			!filters.muscleGroup || ex.muscleGroup === filters.muscleGroup;
@@ -32,12 +33,14 @@ export default function Exercises() {
 		return matchMuscle && matchEquipment && matchDifficulty;
 	});
 
-	// Track wanneer iemand een oefening opent
+	// Track clicks
 	const handleExerciseClick = (exercise) => {
 		trackEvent("exercise_view", {
 			id: exercise.id,
 			name: exercise.name,
 			muscleGroup: exercise.muscleGroup,
+			equipment: exercise.equipment,
+			difficulty: exercise.difficulty,
 		});
 	};
 
@@ -52,6 +55,7 @@ export default function Exercises() {
 				allExercises={exercises}
 			/>
 
+			{/* Exercise grid */}
 			<div className="exercise-grid">
 				{filteredExercises.length > 0 ? (
 					filteredExercises.map((ex) => (
