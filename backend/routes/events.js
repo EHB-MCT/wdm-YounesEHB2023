@@ -1,21 +1,23 @@
 import express from "express";
 import UserEvent from "../models/UserEvent.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-	// 👇 ADD THIS — so you see events in your terminal
-	console.log("📩 Event received:", req.body);
+// events in the console for testing
+router.post("/", auth, async (req, res) => {
+	console.log("📩 Event received (auth):", req.body, "user:", req.user?.email);
 
 	try {
-		const { userId, action, data } = req.body;
+		const { action, data } = req.body;
 
-		if (!userId || !action) {
-			return res.status(400).json({ error: "userId and action required" });
+		if (!action) {
+			return res.status(400).json({ error: "action required" });
 		}
 
 		const event = new UserEvent({
-			userId,
+			userId: req.user._id,
+			userEmail: req.user.email,
 			action,
 			data,
 			ip: req.ip,
@@ -25,7 +27,7 @@ router.post("/", async (req, res) => {
 		await event.save();
 		res.status(201).json({ success: true });
 	} catch (err) {
-		console.error("❌ Error saving event:", err.message);
+		console.error("❌ Error saving event:", err.message || err);
 		res.status(500).json({ error: "Server error" });
 	}
 });
