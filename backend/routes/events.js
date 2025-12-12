@@ -1,35 +1,17 @@
 import express from "express";
-import UserEvent from "../models/UserEvent.js";
+import { EventController } from "../controllers/EventController.js";
+import { EventService } from "../services/EventService.js";
+import { EventRepository } from "../repositories/EventRepository.js";
 import auth from "../middleware/auth.js";
+import { validateEvent } from "../middleware/validation.js";
+import { errorHandler } from "../middleware/errorHandler.js";
 
 const router = express.Router();
 
-// events in the console for testing
-router.post("/", auth, async (req, res) => {
-	console.log("📩 Event received (auth):", req.body, "user:", req.user?.email);
+const eventRepository = new EventRepository();
+const eventService = new EventService(eventRepository);
+const eventController = new EventController(eventService);
 
-	try {
-		const { action, data } = req.body;
-
-		if (!action) {
-			return res.status(400).json({ error: "action required" });
-		}
-
-		const event = new UserEvent({
-			userId: req.user._id,
-			userEmail: req.user.email,
-			action,
-			data,
-			ip: req.ip,
-			userAgent: req.headers["user-agent"],
-		});
-
-		await event.save();
-		res.status(201).json({ success: true });
-	} catch (err) {
-		console.error("❌ Error saving event:", err.message || err);
-		res.status(500).json({ error: "Server error" });
-	}
-});
+router.post("/", auth, validateEvent, eventController.createEvent.bind(eventController));
 
 export default router;
