@@ -1,46 +1,17 @@
 import express from "express";
-import User from "../models/User.js";
-import jwt from "jsonwebtoken";
+import { AuthController } from "../controllers/AuthController.js";
+import { AuthService } from "../services/AuthService.js";
+import { UserRepository } from "../repositories/UserRepository.js";
+import { validateAuth } from "../middleware/validation.js";
+import { errorHandler } from "../middleware/errorHandler.js";
 
 const router = express.Router();
 
-// SIGNUP
-router.post("/signup", async (req, res) => {
-	const { email, password } = req.body;
+const userRepository = new UserRepository();
+const authService = new AuthService(userRepository);
+const authController = new AuthController(authService);
 
-	try {
-		const exists = await User.findOne({ email });
-		if (exists) {
-			return res.status(400).json({ error: "Email already exists" });
-		}
-
-		await User.create({ email, password });
-
-		res.status(201).json({ message: "User created" });
-	} catch (err) {
-		res.status(500).json({ error: "Server error" });
-	}
-});
-
-// LOGIN
-router.post("/login", async (req, res) => {
-	const { email, password } = req.body;
-
-	try {
-		const user = await User.findOne({ email });
-		if (!user || user.password !== password) {
-			return res.status(400).json({ error: "Wrong email or password" });
-		}
-
-		const token = jwt.sign(
-			{ userId: user._id },
-			process.env.JWT_SECRET || "supersecret"
-		);
-
-		res.json({ token, userId: user._id });
-	} catch (err) {
-		res.status(500).json({ error: "Server error" });
-	}
-});
+router.post("/signup", validateAuth, authController.signup.bind(authController));
+router.post("/login", validateAuth, authController.login.bind(authController));
 
 export default router;
