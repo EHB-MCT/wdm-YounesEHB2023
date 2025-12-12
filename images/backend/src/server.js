@@ -7,7 +7,6 @@ import eventsRouter from "./routes/events.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
-
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -31,4 +30,6 @@ mongoose
 	.then(() => console.log("✅ Connected to MongoDB"))
 	.catch((err) => console.error("❌ MongoDB error:", err.message));
 
-app.listen(config.port, () => console.log(`🚀 Server running on port ${config.port}`));
+app.listen(config.port, () =>
+	console.log(`🚀 Server running on port ${config.port}`)
+);

@@ -2,21 +2,50 @@ version: "3.8"
 
 services:
   backend:
-    build: ./backend
+    build: ./images/backend
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./images/backend/src:/app/src
     ports:
       - "5000:5000"
-    env_file:
-      - .env
+    environment:
+      MONGO_URI:
     depends_on:
       - mongo
 
-  mongo:
-    image: mongo:6.0
-    restart: always
+  frontend:
+    build:
+      context: ./images/frontend
+      dockerfile: Dockerfile.dev
     ports:
-      - "27017:27017"
+      - "5173:5173"
+    environment:
+      VITE_API_URL:
+      CHOKIDAR_USEPOLLING: "true"
+    depends_on:
+      - backend
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
     volumes:
       - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: ${MONGO_URI}
+      ME_CONFIG_BASICAUTH_ENABLED:
+      ME_CONFIG_BASICAUTH_USERNAME:
+      ME_CONFIG_BASICAUTH_PASSWORD:
 
 volumes:
   mongo_data:
