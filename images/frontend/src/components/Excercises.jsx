@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../App.css";
 import exercisesData from "./gym_exercises.json";
 import Filter from "./Filter";
-import trackEvent from "../utils/trackEvent";
+import trackEvent, { trackExerciseHover, trackTimeToClick, trackExerciseSelect } from "../utils/trackEvent";
 
 export default function Exercises() {
 	const [exercises, setExercises] = useState([]);
@@ -12,6 +12,8 @@ export default function Exercises() {
 		equipment: "",
 		difficulty: "",
 	});
+	const [exerciseHoverTimers, setExerciseHoverTimers] = useState({});
+	const [pageLoadTime] = useState(new Date().getTime());
 
 	// Load exercises
 	useEffect(() => {
@@ -33,15 +35,52 @@ export default function Exercises() {
 		return matchMuscle && matchEquipment && matchDifficulty;
 	});
 
-	// Track clicks
+	// Track clicks with enhanced data
 	const handleExerciseClick = (exercise) => {
-		trackEvent("exercise_view", {
+		const timeOnPage = (new Date().getTime() - pageLoadTime) / 1000; // in seconds
+		
+		trackEvent("exercise_click", {
 			id: exercise.id,
 			name: exercise.name,
 			muscleGroup: exercise.muscleGroup,
 			equipment: exercise.equipment,
 			difficulty: exercise.difficulty,
 		});
+		
+		trackTimeToClick(exercise.id, timeOnPage);
+		trackExerciseSelect(exercise.id, 'view_details');
+	};
+
+	// Add exercise to workout (for when workout functionality is added)
+	const handleAddToWorkout = (exercise) => {
+		trackExerciseSelect(exercise.id, 'added_to_workout');
+	};
+
+	// Track hover events
+	const handleExerciseHover = (exerciseId, isEntering) => {
+		if (isEntering) {
+			// Start hover timer
+			const startTime = new Date().getTime();
+			setExerciseHoverTimers(prev => ({
+				...prev,
+				[exerciseId]: startTime
+			}));
+		} else {
+			// End hover and track duration
+			const startTime = exerciseHoverTimers[exerciseId];
+			if (startTime) {
+				const endTime = new Date().getTime();
+				const hoverDuration = (endTime - startTime) / 1000; // in seconds
+				trackExerciseHover(exerciseId, hoverDuration);
+				
+				// Clean up timer
+				setExerciseHoverTimers(prev => {
+					const newTimers = { ...prev };
+					delete newTimers[exerciseId];
+					return newTimers;
+				});
+			}
+		}
 	};
 
 	return (
@@ -63,6 +102,8 @@ export default function Exercises() {
 							key={ex.id}
 							className="exercise-card"
 							onClick={() => handleExerciseClick(ex)}
+							onMouseEnter={() => handleExerciseHover(ex.id, true)}
+							onMouseLeave={() => handleExerciseHover(ex.id, false)}
 						>
 							<h3 className="exercise-name">{ex.name || "Unknown Name"}</h3>
 

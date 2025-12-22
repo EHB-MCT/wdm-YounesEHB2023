@@ -4,6 +4,7 @@ import cors from "cors";
 import { config } from "./config/index.js";
 import authRoutes from "./routes/auth.js";
 import eventsRouter from "./routes/events.js";
+import adminRoutes from "./routes/admin.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventsRouter);
+app.use("/api/admin", adminRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

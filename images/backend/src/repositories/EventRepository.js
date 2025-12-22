@@ -9,4 +9,24 @@ export class EventRepository {
   async findByUserId(userId) {
     return await UserEvent.find({ userId }).sort({ timestamp: -1 });
   }
+
+  async getUserEvents(userId) {
+    return await UserEvent.find({ userId }).sort({ timestamp: 1 }); // chronological order
+  }
+
+  async getAllEvents() {
+    return await UserEvent.find().sort({ timestamp: -1 });
+  }
+
+  async getEventStats() {
+    const stats = await UserEvent.aggregate([
+      {
+        $group: {
+          _id: '$action',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    return stats;
+  }
 }
