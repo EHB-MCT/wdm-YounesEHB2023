@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 
-export default function Signup() {
+export default function Signup({ onSwitchToLogin }) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [msg, setMsg] = useState("");
 
 	const handleSignup = async (e) => {
 		e.preventDefault();
@@ -17,35 +18,45 @@ export default function Signup() {
 			const data = await res.json();
 
 			if (!res.ok) {
-				alert(data.error || "Signup failed");
+				setMsg(data.error || "Signup failed");
 				return;
 			}
 
-			alert("Account created!");
+			setMsg("Account created! You can now log in.");
+			setTimeout(() => {
+				onSwitchToLogin();
+			}, 1500);
 		} catch (error) {
 			console.error(error);
+			setMsg("Signup failed (network error)");
 		}
 	};
 
 	return (
 		<form onSubmit={handleSignup} className="auth-form">
-			<h2>Sign Up</h2>
+			<div className="form-group">
+				<input
+					type="email"
+					placeholder="Email"
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					required
+				/>
+			</div>
 
-			<input
-				type="email"
-				placeholder="Email"
-				value={email}
-				onChange={(e) => setEmail(e.target.value)}
-			/>
+			<div className="form-group">
+				<input
+					type="password"
+					placeholder="Password"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					required
+				/>
+			</div>
 
-			<input
-				type="password"
-				placeholder="Password"
-				value={password}
-				onChange={(e) => setPassword(e.target.value)}
-			/>
+			<button type="submit" className="submit-btn">Sign Up</button>
 
-			<button type="submit">Sign Up</button>
+			{msg && <p className={`auth-msg ${msg.includes("failed") ? "error" : "success"}`}>{msg}</p>}
 		</form>
 	);
 }

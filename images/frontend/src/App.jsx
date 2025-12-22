@@ -1,21 +1,16 @@
 import React, { useState } from "react";
 import Exercises from "./components/Excercises.jsx";
-
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
+import Auth from "./pages/Auth.jsx";
 
 function App() {
 	const [token, setToken] = useState(localStorage.getItem("token"));
 
-	// Gebruiker NIET ingelogd → eerst Signup + Login tonen
+	// Gebruiker NIET ingelogd → toon Auth component
 	if (!token) {
 		return (
 			<div style={{ padding: "20px" }}>
-				<h1>Welkom! log in of maak een account</h1>
-
-				<Signup />
-
-				<Login
+				<h1>Welkom! log in of ak een account</h1>
+				<Auth
 					onLogin={(receivedToken) => {
 						localStorage.setItem("token", receivedToken);
 						setToken(receivedToken);

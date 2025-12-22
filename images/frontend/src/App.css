@@ -197,15 +197,20 @@
 	color: #333;
 }
 
+.form-group {
+	margin-bottom: 1rem;
+	width: 100%;
+}
+
 .auth-form input {
 	width: 100%;
 	padding: 0.75rem;
-	margin-bottom: 1rem;
 	border: 1px solid #ccc;
 	border-radius: 6px;
 	font-size: 0.95rem;
 	box-sizing: border-box;
 	transition: border-color 0.2s;
+	display: block;
 }
 
 .auth-form input:focus {
@@ -254,4 +259,130 @@
 	background-color: #f8d7da;
 	color: #721c24;
 	border: 1px solid #f5c6cb;
+}
+
+/* Auth Container */
+.auth-container {
+	max-width: 400px;
+	margin: 2rem auto;
+	padding: 0 1rem;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* Toggle Buttons */
+.auth-toggle {
+	display: flex;
+	background: #f5f5f5;
+	border-radius: 8px;
+	padding: 4px;
+	margin-bottom: 1.5rem;
+	width: 100%;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn {
+	flex: 1;
+	padding: 0.75rem 1rem;
+	border: none;
+	background: transparent;
+	border-radius: 6px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #666;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+	background: white;
+	color: #4caf50;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn:hover:not(.active) {
+	color: #333;
+}
+
+/* Auth Form Updates */
+.auth-form {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 2rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	font-family: sans-serif;
+}
+
+.auth-form h2 {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-bottom: 1.5rem;
+	text-align: center;
+	color: #333;
+}
+
+.submit-btn {
+	width: 100%;
+	padding: 0.75rem;
+	background-color: #4caf50;
+	color: white;
+	border: none;
+	border-radius: 6px;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	margin-top: 0.5rem;
+}
+
+.submit-btn:hover {
+	background-color: #45a049;
+}
+
+.submit-btn:active {
+	background-color: #3d8b40;
+}
+
+/* Auth Switch Link */
+.auth-switch {
+	text-align: center;
+	margin-top: 1.5rem;
+	padding-top: 1rem;
+	border-top: 1px solid #eee;
+	font-size: 0.9rem;
+	color: #666;
+}
+
+.link-btn {
+	background: none;
+	border: none;
+	color: #4caf50;
+	cursor: pointer;
+	font-size: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+	padding: 0;
+	margin: 0;
+}
+
+.link-btn:hover {
+	color: #45a049;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+	.auth-container {
+		margin: 1rem;
+		padding: 0;
+	}
+	
+	.auth-form {
+		padding: 1.5rem;
+	}
+	
+	.toggle-btn {
+		font-size: 0.9rem;
+		padding: 0.6rem 0.8rem;
+	}
 }
