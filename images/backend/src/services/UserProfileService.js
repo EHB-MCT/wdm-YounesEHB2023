@@ -56,11 +56,16 @@ export class UserProfileService {
 	 * @returns {Object} Metrics object
 	 */
 	static calculateUserMetrics(events) {
-		const totalInteractions = events.length;
-		const exerciseClicks = events.filter(e => e.action === 'exercise_click').length;
-		const exerciseCompletes = events.filter(e => e.action === 'exercise_complete').length;
-		const workoutSessions = events.filter(e => e.action === 'workout_session' && e.data.sessionType === 'start').length;
-		const workoutCompletions = events.filter(e => e.action === 'workout_session' && e.data.sessionType === 'end').length;
+		// Handle null/undefined events
+		if (!events || !Array.isArray(events)) {
+			events = [];
+		}
+
+		const totalInteractions = events.filter(e => e !== null && e !== undefined).length;
+		const exerciseClicks = events.filter(e => e && e.action === 'exercise_click').length;
+		const exerciseCompletes = events.filter(e => e && e.action === 'exercise_complete').length;
+		const workoutSessions = events.filter(e => e && e.action === 'workout_session' && e.data && e.data.sessionType === 'start').length;
+		const workoutCompletions = events.filter(e => e && e.action === 'workout_session' && e.data && e.data.sessionType === 'end').length;
 
 		// Calculate completion rate
 		const completionRate = exerciseClicks > 0 ? exerciseCompletes / exerciseClicks : 0;
@@ -93,11 +98,18 @@ export class UserProfileService {
 	 * @returns {Number} Consistency score (0-1)
 	 */
 	static calculateConsistencyScore(events) {
+		// Handle null/undefined events
+		if (!events || !Array.isArray(events) || events.length === 0) {
+			return 0;
+		}
+
 		// Group events by day
 		const dailyActivity = {};
 		events.forEach(event => {
-			const date = new Date(event.timestamp || new Date()).toISOString().split('T')[0];
-			dailyActivity[date] = (dailyActivity[date] || 0) + 1;
+			if (event) { // Additional safety check
+				const date = new Date(event.timestamp || new Date()).toISOString().split('T')[0];
+				dailyActivity[date] = (dailyActivity[date] || 0) + 1;
+			}
 		});
 
 		const activeDays = Object.keys(dailyActivity).length;
@@ -113,8 +125,20 @@ export class UserProfileService {
 	 * @returns {Number} Engagement score (0-1)
 	 */
 	static calculateEngagementScore(events) {
-		const actionTypes = new Set(events.map(e => e.action));
-		const exerciseIds = new Set(events.filter(e => e.data.exerciseId).map(e => e.data.exerciseId));
+		// Handle null/undefined events
+		if (!events || !Array.isArray(events) || events.length === 0) {
+			return 0;
+		}
+
+		const actionTypes = new Set();
+		const exerciseIds = new Set();
+		
+		events.forEach(e => {
+			if (e) { // Additional safety check
+				if (e.action) actionTypes.add(e.action);
+				if (e.data && e.data.exerciseId) exerciseIds.add(e.data.exerciseId);
+			}
+		});
 		
 		// Higher score for diverse interactions and exercise variety
 		const actionScore = Math.min(actionTypes.size / 5, 1); // Normalize to max 5 action types
@@ -159,29 +183,48 @@ export class UserProfileService {
 	 * @returns {Object} User insights
 	 */
 	static getUserInsights(events) {
+		// Handle null/undefined events
+		if (!events || !Array.isArray(events)) {
+			events = [];
+		}
+
 		const metrics = this.calculateUserMetrics(events);
 		const userType = this.classifyUser(events);
 
 		// Most popular exercises
 		const exerciseFrequency = {};
-		events.filter(e => e.data.exerciseId).forEach(event => {
-			const id = event.data.exerciseId;
-			exerciseFrequency[id] = (exerciseFrequency[id] || 0) + 1;
+		events.forEach(event => {
+			if (event && event.data && event.data.exerciseId) {
+				const id = event.data.exerciseId;
+				exerciseFrequency[id] = (exerciseFrequency[id] || 0) + 1;
+			}
 		});
 
-		const topExercises = Object.entries(exerciseFrequency)
-			.sort((a, b) => b[1] - a[1])
-			.slice(0, 3)
-			.map(([id, count]) => ({ exerciseId: id, interactionCount: count }));
+		const topExercises = Object.keys(exerciseFrequency).length > 0 
+			? Object.entries(exerciseFrequency)
+				.sort((a, b) => b[1] - a[1])
+				.slice(0, 3)
+				.map(([id, count]) => ({ exerciseId: id, interactionCount: count }))
+			: [];
 
 		// Activity patterns
 		const hourlyActivity = new Array(24).fill(0);
 		events.forEach(event => {
-			const hour = new Date(event.timestamp || new Date()).getHours();
-			hourlyActivity[hour]++;
+			if (event && event.timestamp) {
+				try {
+					const hour = new Date(event.timestamp).getHours();
+					if (hour >= 0 && hour <= 23) {
+						hourlyActivity[hour]++;
+					}
+				} catch (dateError) {
+					console.error('Invalid timestamp for event:', event.timestamp);
+				}
+			}
 		});
 
-		const peakHour = hourlyActivity.indexOf(Math.max(...hourlyActivity));
+		const peakHour = hourlyActivity.length > 0 && Math.max(...hourlyActivity) > 0 
+			? hourlyActivity.indexOf(Math.max(...hourlyActivity))
+			: 12; // Default to noon
 
 		return {
 			userType,

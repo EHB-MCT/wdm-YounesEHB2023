@@ -54,28 +54,34 @@ export class AdminController {
 
 			// Classify each user
 			for (const user of users) {
-				const events = await this.eventRepository.getUserEvents(user.id);
-				const userType = UserProfileService.classifyUser(events);
-				
-				switch (userType) {
-					case 'MOTIVATED':
-						stats.motivatedUsers++;
-						break;
-					case 'UNMOTIVATED':
-						stats.unmotivatedUsers++;
-						break;
-					case 'EXPERT':
-						stats.expertUsers++;
-						break;
-					case 'NEW':
-						stats.newUsers++;
-						break;
+				try {
+					const events = await this.eventRepository.getUserEvents(user.id);
+					const userType = UserProfileService.classifyUser(events);
+					
+					switch (userType) {
+						case 'MOTIVATED':
+							stats.motivatedUsers++;
+							break;
+						case 'UNMOTIVATED':
+							stats.unmotivatedUsers++;
+							break;
+						case 'EXPERT':
+							stats.expertUsers++;
+							break;
+						case 'NEW':
+							stats.newUsers++;
+							break;
+					}
+				} catch (userError) {
+					console.error(`Error processing user ${user.id}:`, userError);
+					stats.newUsers++; // Default to NEW for error cases
 				}
 			}
 
 			res.json(stats);
 		} catch (error) {
-			next(error);
+			console.error('Error in getUserStats:', error);
+			res.status(500).json({ error: 'Failed to get user statistics' });
 		}
 	}
 
@@ -87,7 +93,8 @@ export class AdminController {
 			
 			res.json(insights);
 		} catch (error) {
-			next(error);
+			console.error('Error in getUserInsights:', error);
+			res.status(500).json({ error: 'Failed to get user insights' });
 		}
 	}
 
@@ -97,23 +104,40 @@ export class AdminController {
 			const allInsights = [];
 
 			for (const user of users) {
-				const events = await this.eventRepository.getUserEvents(user.id);
-				const insights = UserProfileService.getUserInsights(events);
-				
-				allInsights.push({
-					id: user.id,
-					name: user.name,
-					email: user.email,
-					...insights
-				});
+				try {
+					const events = await this.eventRepository.getUserEvents(user.id);
+					const insights = UserProfileService.getUserInsights(events);
+					
+					allInsights.push({
+						id: user.id,
+						name: user.name || 'Unknown',
+						email: user.email || 'Unknown',
+						...insights
+					});
+				} catch (userError) {
+					console.error(`Error processing insights for user ${user.id}:`, userError);
+					// Add basic user info even if insights fail
+					allInsights.push({
+						id: user.id,
+						name: user.name || 'Unknown',
+						email: user.email || 'Unknown',
+						userType: 'NEW',
+						metrics: { engagementScore: 0, completionRate: 0 },
+						topExercises: [],
+						insights: ['Unable to process user data']
+					});
+				}
 			}
 
-			// Sort by engagement score (highest first)
-			allInsights.sort((a, b) => b.metrics.engagementScore - a.metrics.engagementScore);
+			// Sort by engagement score (highest first), handle missing metrics
+			allInsights.sort((a, b) => 
+				(b.metrics?.engagementScore || 0) - (a.metrics?.engagementScore || 0)
+			);
 
 			res.json(allInsights);
 		} catch (error) {
-			next(error);
+			console.error('Error in getAllUserInsights:', error);
+			res.status(500).json({ error: 'Failed to get user insights' });
 		}
 	}
 }
