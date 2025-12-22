@@ -5,6 +5,7 @@ import { config } from "./config/index.js";
 import authRoutes from "./routes/auth.js";
 import eventsRouter from "./routes/events.js";
 import adminRoutes from "./routes/admin.js";
+import workoutRoutes from "./routes/workouts.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventsRouter);
 app.use("/api/admin", adminRoutes);
+app.use("/api/workouts", workoutRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
