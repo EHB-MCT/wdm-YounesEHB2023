@@ -8,8 +8,11 @@ function App() {
 	// Gebruiker NIET ingelogd → toon Auth component
 	if (!token) {
 		return (
-			<div style={{ padding: "20px" }}>
-				<h1>Welkom! log in of ak een account</h1>
+			<div className="auth-wrapper">
+				<div className="welcome-header">
+					<h1>💪 Gym Exercises Platform</h1>
+					<p>Welkom! Log in of maak een account om te beginnen</p>
+				</div>
 				<Auth
 					onLogin={(receivedToken) => {
 						localStorage.setItem("token", receivedToken);
@@ -23,17 +26,27 @@ function App() {
 	// Gebruiker IS ingelogd → toon de rest van de website
 	return (
 		<div className="App">
-			<button
-				onClick={() => {
-					localStorage.removeItem("token");
-					setToken(null);
-				}}
-				style={{ position: "absolute", top: 10, right: 10 }}
-			>
-				Log out
-			</button>
+			<header className="app-header">
+				<div className="header-content">
+					<div className="logo-section">
+						<h1>💪 Gym Exercises</h1>
+						<span className="tagline">Professional Workout Platform</span>
+					</div>
+					<button
+						onClick={() => {
+							localStorage.removeItem("token");
+							setToken(null);
+						}}
+						className="logout-btn"
+					>
+						Log out
+					</button>
+				</div>
+			</header>
 
-			<Exercises />
+			<main className="main-content">
+				<Exercises />
+			</main>
 		</div>
 	);
 }
