@@ -299,20 +299,31 @@ export class WorkoutController {
       const { exerciseId, setNumber, reps, weight, weightUnit = 'kg', notes } = req.body;
       const userId = req.user._id;
       
+      console.log('Logging exercise set:', { sessionId, exerciseId, setNumber, reps, weight, userId });
+      
       const session = await WorkoutSession.findOne({ _id: sessionId, userId });
       
       if (!session) {
+        console.error('Session not found:', sessionId);
         return res.status(404).json({ error: 'Workout session not found' });
       }
       
       if (session.status !== 'in_progress') {
+        console.error('Session not in progress:', session.status);
         return res.status(400).json({ error: 'Cannot log sets for completed or abandoned workout' });
       }
       
       const exercise = session.exercises.find(ex => ex.exerciseId === exerciseId);
       
       if (!exercise) {
+        console.error('Exercise not found in session:', exerciseId);
+        console.log('Available exercises:', session.exercises.map(ex => ex.exerciseId));
         return res.status(404).json({ error: 'Exercise not found in this workout session' });
+      }
+      
+      // Ensure completedSets is initialized
+      if (!exercise.completedSets) {
+        exercise.completedSets = [];
       }
       
       // Add or update the set
@@ -329,18 +340,25 @@ export class WorkoutController {
         timestamp: new Date()
       };
       
+      console.log('Adding set to exercise:', set);
+      
       if (existingSetIndex >= 0) {
         exercise.completedSets[existingSetIndex] = set;
+        console.log('Updated existing set at index:', existingSetIndex);
       } else {
         exercise.completedSets.push(set);
+        console.log('Added new set. Total sets:', exercise.completedSets.length);
       }
       
       // Set exercise start time if first set
       if (exercise.completedSets.length === 1 && !exercise.startTime) {
         exercise.startTime = new Date();
+        console.log('Set exercise start time');
       }
       
+      console.log('Saving session...');
       await session.save();
+      console.log('Session saved successfully');
       
       // Check for personal records
       const exerciseData = req.body;
@@ -349,7 +367,9 @@ export class WorkoutController {
       exerciseData.muscleGroup = exercise.muscleGroup;
       exerciseData.workoutSessionId = sessionId;
       
+      console.log('Checking for personal records...');
       const newPRs = await PersonalRecord.checkAndUpdatePR(exerciseData);
+      console.log('Personal records found:', newPRs.length);
       
       res.json({ 
         session,
@@ -357,6 +377,7 @@ export class WorkoutController {
         records: newPRs
       });
     } catch (error) {
+      console.error('Error in logExerciseSet:', error);
       next(error);
     }
   }
@@ -367,25 +388,43 @@ export class WorkoutController {
       const { rating, felt, notes } = req.body;
       const userId = req.user._id;
       
+      console.log('Complete workout request:', { sessionId, userId, rating, felt, notes });
+      
       const session = await WorkoutSession.findOne({ _id: sessionId, userId });
       
       if (!session) {
+        console.error('Session not found for completion:', sessionId);
         return res.status(404).json({ error: 'Workout session not found' });
       }
       
       if (session.status !== 'in_progress') {
+        console.error('Session not in progress for completion:', session.status);
         return res.status(400).json({ error: 'Workout is already completed or abandoned' });
       }
+      
+      // Ensure all exercises have completedSets arrays
+      session.exercises.forEach(exercise => {
+        if (!exercise.completedSets) {
+          exercise.completedSets = [];
+        }
+      });
       
       // Update completion fields
       if (rating !== undefined) session.rating = rating;
       if (felt) session.felt = felt;
       if (notes !== undefined) session.notes = notes;
       
+      console.log('Completing workout session:', sessionId);
+      console.log('Session exercises count:', session.exercises.length);
+      console.log('Total sets planned:', session.totalSetsPlanned);
+      console.log('Total sets completed:', session.totalSetsCompleted);
+      
       await session.completeWorkout();
       
+      console.log('Workout completed successfully');
       res.json(session);
     } catch (error) {
+      console.error('Error completing workout session:', error);
       next(error);
     }
   }
@@ -396,22 +435,36 @@ export class WorkoutController {
       const { notes } = req.body;
       const userId = req.user._id;
       
+      console.log('Abandon workout request:', { sessionId, userId, notes });
+      
       const session = await WorkoutSession.findOne({ _id: sessionId, userId });
       
       if (!session) {
+        console.error('Session not found for abandonment:', sessionId);
         return res.status(404).json({ error: 'Workout session not found' });
       }
       
       if (session.status !== 'in_progress') {
+        console.error('Session not in progress for abandonment:', session.status);
         return res.status(400).json({ error: 'Workout is already completed or abandoned' });
       }
       
+      // Ensure all exercises have completedSets arrays
+      session.exercises.forEach(exercise => {
+        if (!exercise.completedSets) {
+          exercise.completedSets = [];
+        }
+      });
+      
       if (notes) session.notes = notes;
       
+      console.log('Abandoning workout session...');
       await session.abandonWorkout();
+      console.log('Workout abandoned successfully');
       
       res.json(session);
     } catch (error) {
+      console.error('Error abandoning workout session:', error);
       next(error);
     }
   }

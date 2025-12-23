@@ -272,4 +272,45 @@ router.get("/suggestions", auth, async (req, res, next) => {
   }
 });
 
+// Export current user's workout data
+router.get("/export/user", auth, async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { period = 'year', format = 'json' } = req.query;
+    
+    const [sessions, templates, records, stats] = await Promise.all([
+      WorkoutSession.find({ userId }).sort({ startTime: -1 }),
+      WorkoutTemplate.find({ userId }).sort({ createdAt: -1 }),
+      PersonalRecord.find({ userId, isActive: true }).sort({ value: -1 }),
+      userStatsService.getAllTimeStats(userId)
+    ]);
+    
+    const exportData = {
+      userId,
+      exportDate: new Date(),
+      period,
+      summary: stats,
+      templates: templates.map(t => ({
+        name: t.name,
+        category: t.category,
+        exerciseCount: t.exercises.length,
+        totalUses: t.totalUses,
+        createdAt: t.createdAt
+      })),
+      sessions: sessions.map(s => ({
+        date: s.startTime,
+        duration: s.duration,
+        exercises: s.exercises.length,
+        volume: s.totalVolume,
+        completed: s.isCompleted
+      })),
+      personalRecords: records
+    };
+    
+    res.json(exportData);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

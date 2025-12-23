@@ -102,7 +102,7 @@ export default function WorkoutHistory({ onBack }) {
 	
 	const exportData = async (format = 'json') => {
 		try {
-			const response = await fetch('http://localhost:5000/api/workouts/export/user', {
+			const response = await fetch('http://localhost:5000/api/workouts/export/me', {
 				method: 'GET',
 				headers: {
 					'Authorization': `Bearer ${localStorage.getItem('token')}`

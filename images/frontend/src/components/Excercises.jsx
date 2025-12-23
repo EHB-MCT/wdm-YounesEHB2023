@@ -5,7 +5,7 @@ import Filter from "./Filter";
 import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
 import trackEvent, { trackExerciseHover, trackTimeToClick, trackExerciseSelect } from "../utils/trackEvent";
 
-export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate }) {
+export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate }) {
 	const [exercises, setExercises] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filters, setFilters] = useState({
@@ -220,7 +220,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 					'Authorization': `Bearer ${token}`
 				},
 				body: JSON.stringify({
-					templateId: template._id
+					workoutTemplateId: template._id
 				})
 			});
 
@@ -296,7 +296,13 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 					
 					{onCreateTemplate && (
 						<button 
-							onClick={() => setShowTemplateBuilder(true)}
+							onClick={() => {
+								if (onCreateTemplate) {
+									onCreateTemplate();
+								} else {
+									setShowTemplateBuilder(true);
+								}
+							}}
 							className="btn btn-secondary create-template-btn"
 						>
 							📋 Create Template
@@ -354,8 +360,12 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 									<div className="template-actions">
 										<button 
 											onClick={() => {
-												setEditingTemplate(template);
-												setShowTemplateBuilder(true);
+												if (onEditTemplate) {
+													onEditTemplate(template);
+												} else {
+													setEditingTemplate(template);
+													setShowTemplateBuilder(true);
+												}
 											}}
 											className="btn btn-small btn-secondary"
 											title="Edit template"

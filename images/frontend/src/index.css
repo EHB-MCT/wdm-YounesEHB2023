@@ -91,7 +91,8 @@ body {
 	font-size: var(--font-size-base);
 	line-height: 1.6;
 	color: var(--color-text-primary);
-	background-color: var(--color-bg-main);
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	min-height: 100vh;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }

@@ -61,30 +61,36 @@ workoutSessionSchema.index({ userId: 1, category: 1 });
 
 // Pre-save middleware to calculate duration and completion rate
 workoutSessionSchema.pre('save', function(next) {
-	if (this.endTime && this.startTime) {
-		this.duration = Math.round((this.endTime - this.startTime) / (1000 * 60)); // minutes
-	}
-	
-	// Calculate total sets planned and completed
-	this.totalSetsPlanned = this.exercises.reduce((sum, ex) => sum + ex.targetSets, 0);
-	this.totalSetsCompleted = this.exercises.reduce((sum, ex) => sum + ex.completedSets.length, 0);
-	
-	// Calculate completion rate
-	this.completionRate = this.totalSetsPlanned > 0 
-		? Math.round((this.totalSetsCompleted / this.totalSetsPlanned) * 100) 
-		: 0;
-	
-	// Calculate total volume (reps × weight in kg)
-	this.totalVolume = this.exercises.reduce((total, exercise) => {
-		const exerciseVolume = exercise.completedSets.reduce((exTotal, set) => {
-			// Convert to kg for consistent calculation
-			const weightInKg = set.weightUnit === 'lbs' ? set.weight / 2.20462 : set.weight;
-			return exTotal + (set.reps * weightInKg);
+	try {
+		if (this.endTime && this.startTime) {
+			this.duration = Math.round((this.endTime - this.startTime) / (1000 * 60)); // minutes
+		}
+		
+		// Calculate total sets planned and completed - ensure targetSets exists
+		this.totalSetsPlanned = this.exercises.reduce((sum, ex) => sum + (ex.targetSets || 3), 0);
+		this.totalSetsCompleted = this.exercises.reduce((sum, ex) => sum + (ex.completedSets ? ex.completedSets.length : 0), 0);
+		
+		// Calculate completion rate
+		this.completionRate = this.totalSetsPlanned > 0 
+			? Math.round((this.totalSetsCompleted / this.totalSetsPlanned) * 100) 
+			: 0;
+		
+		// Calculate total volume (reps × weight in kg)
+		this.totalVolume = this.exercises.reduce((total, exercise) => {
+			if (!exercise.completedSets || !Array.isArray(exercise.completedSets)) return total;
+			const exerciseVolume = exercise.completedSets.reduce((exTotal, set) => {
+				// Convert to kg for consistent calculation
+				const weightInKg = set.weightUnit === 'lbs' ? set.weight / 2.20462 : set.weight;
+				return exTotal + (set.reps * weightInKg);
+			}, 0);
+			return total + exerciseVolume;
 		}, 0);
-		return total + exerciseVolume;
-	}, 0);
-	
-	next();
+		
+		next();
+	} catch (error) {
+		console.error('Error in pre-save middleware:', error);
+		next(error);
+	}
 });
 
 // Method to complete workout

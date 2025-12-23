@@ -82,7 +82,22 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			return;
 		}
 		
+		if (!session || !session._id) {
+			console.error('No session or session ID available');
+			alert('Workout session not available. Please restart workout.');
+			return;
+		}
+		
 		try {
+			console.log('Logging set:', {
+				sessionId: session._id,
+				exerciseId: currentExercise.exerciseId,
+				setNumber: currentSet,
+				reps,
+				weight,
+				weightUnit
+			});
+			
 			trackEvent("exercise_set_logging", {
 				exerciseId: currentExercise.exerciseId,
 				exerciseName: currentExercise.exerciseName,
@@ -110,11 +125,13 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			
 			const data = await response.json();
 			
+			console.log('Set logging response:', data);
+			
 			if (response.ok) {
 				onSessionUpdate(data.session);
 				
 				// Check for new personal records
-				if (data.newPersonalRecords && data.records.length > 0) {
+				if (data.newPersonalRecords && data.records && data.records.length > 0) {
 					setPrData(data.records);
 					setShowPRNotification(true);
 					
@@ -195,10 +212,18 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 	};
 	
 	const completeWorkout = async () => {
+		if (!session || !session._id) {
+			console.error('No session or session ID available for completion');
+			alert('Workout session not available. Please restart workout.');
+			return;
+		}
+		
 		try {
+			console.log('Completing workout:', session._id);
+			
 			trackWorkoutSession('complete', {
 				duration: Math.round((new Date() - sessionStartTime) / (1000 * 60)),
-				exercisesCompleted: session.exercises.filter(ex => ex.completedSets.length > 0).length,
+				exercisesCompleted: session.exercises.filter(ex => ex.completedSets && ex.completedSets.length > 0).length,
 				totalExercises: session.exercises.length
 			});
 			
@@ -217,9 +242,12 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			
 			const data = await response.json();
 			
+			console.log('Complete workout response:', data);
+			
 			if (response.ok) {
 				onComplete(data);
 			} else {
+				console.error('Complete workout error:', data);
 				throw new Error(data.error || 'Failed to complete workout');
 			}
 		} catch (error) {
@@ -231,10 +259,18 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 	const abandonWorkout = async () => {
 		if (!confirm('Are you sure you want to abandon this workout? Your progress will be saved but marked as incomplete.')) return;
 		
+		if (!session || !session._id) {
+			console.error('No session or session ID available for abandon');
+			alert('Workout session not available. Please restart workout.');
+			return;
+		}
+		
 		try {
+			console.log('Abandoning workout:', session._id);
+			
 			trackWorkoutSession('abandon', {
 				duration: Math.round((new Date() - sessionStartTime) / (1000 * 60)),
-				exercisesCompleted: session.exercises.filter(ex => ex.completedSets.length > 0).length,
+				exercisesCompleted: session.exercises.filter(ex => ex.completedSets && ex.completedSets.length > 0).length,
 				totalExercises: session.exercises.length,
 				currentExercise: currentExercise?.exerciseName,
 				currentSet
@@ -253,9 +289,12 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			
 			const data = await response.json();
 			
+			console.log('Abandon workout response:', data);
+			
 			if (response.ok) {
 				onAbandon(data);
 			} else {
+				console.error('Abandon workout error:', data);
 				throw new Error(data.error || 'Failed to abandon workout');
 			}
 		} catch (error) {
