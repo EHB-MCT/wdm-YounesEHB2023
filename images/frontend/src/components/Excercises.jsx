@@ -147,8 +147,8 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 			const token = localStorage.getItem('token');
 			const isEditing = editingTemplate && editingTemplate._id;
 			const url = isEditing 
-				? `http://localhost:5000/api/workouts/templates/${editingTemplate._id}`
-				: 'http://localhost:5000/api/workouts/templates';
+				? `http://localhost:5000/api/workouts/template/${editingTemplate._id}`
+				: 'http://localhost:5000/api/workouts/template';
 			const method = isEditing ? 'PUT' : 'POST';
 			
 			const response = await fetch(url, {
@@ -189,7 +189,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 
 		try {
 			const token = localStorage.getItem('token');
-			const response = await fetch(`http://localhost:5000/api/workouts/templates/${templateId}`, {
+			const response = await fetch(`http://localhost:5000/api/workouts/template/${templateId}`, {
 				method: 'DELETE',
 				headers: {
 					'Authorization': `Bearer ${token}`
@@ -294,20 +294,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 						</button>
 					)}
 					
-					{onCreateTemplate && (
-						<button 
-							onClick={() => {
-								if (onCreateTemplate) {
-									onCreateTemplate();
-								} else {
-									setShowTemplateBuilder(true);
-								}
-							}}
-							className="btn btn-secondary create-template-btn"
-						>
-							📋 Create Template
-						</button>
-					)}
+
 					
 					{onViewHistory && (
 						<button 
@@ -340,15 +327,6 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 			<div className="templates-section">
 				<div className="templates-header">
 					<h2>My Workout Templates</h2>
-					<button 
-						className="btn btn-primary"
-						onClick={() => {
-							setEditingTemplate(null);
-							setShowTemplateBuilder(true);
-						}}
-					>
-						➕ Create Template
-					</button>
 				</div>
 				
 				{templates.length > 0 ? (
