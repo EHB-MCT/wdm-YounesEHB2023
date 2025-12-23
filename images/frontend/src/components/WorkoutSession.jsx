@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import trackEvent, { trackWorkoutSession, trackExerciseComplete } from "../utils/trackEvent";
 
-export default function WorkoutSession({ session, onSessionUpdate, onComplete, onAbandon }) {
+export default function WorkoutSession({ session, onSessionUpdate, onComplete, onAbandon, onBack }) {
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 	const [currentSet, setCurrentSet] = useState(1);
 	const [isResting, setIsResting] = useState(false);
@@ -356,6 +356,11 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			{/* Workout Header */}
 			<div className="workout-session-header">
 				<div className="workout-info">
+					{onBack && (
+						<button onClick={onBack} className="btn btn-secondary back-btn">
+							← Back to Exercises
+						</button>
+					)}
 					<h2>{session.templateName}</h2>
 					<div className="workout-progress">
 						<span>Exercise {currentExerciseIndex + 1} of {session.exercises.length}</span>

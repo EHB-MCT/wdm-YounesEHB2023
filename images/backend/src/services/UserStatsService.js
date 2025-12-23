@@ -1,5 +1,6 @@
 import WorkoutSession from "../models/WorkoutSession.js";
 import PersonalRecord from "../models/PersonalRecord.js";
+import WorkoutTemplate from "../models/WorkoutTemplate.js";
 import { UtilsService } from "./UtilsService.js";
 
 export class UserStatsService {

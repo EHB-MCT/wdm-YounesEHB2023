@@ -39,13 +39,13 @@ router.get("/sessions/:id", auth, workoutController.getWorkoutSession.bind(worko
 router.post("/session", auth, workoutController.startWorkoutSession.bind(workoutController));
 
 // Log exercise set in a workout session
-router.put("/session/:id/exercise", auth, workoutController.logExerciseSet.bind(workoutController));
+router.put("/session/:sessionId/exercise", auth, workoutController.logExerciseSet.bind(workoutController));
 
 // Complete a workout session
-router.post("/session/:id/complete", auth, workoutController.completeWorkoutSession.bind(workoutController));
+router.post("/session/:sessionId/complete", auth, workoutController.completeWorkoutSession.bind(workoutController));
 
 // Abandon a workout session
-router.post("/session/:id/abandon", auth, workoutController.abandonWorkoutSession.bind(workoutController));
+router.post("/session/:sessionId/abandon", auth, workoutController.abandonWorkoutSession.bind(workoutController));
 
 // USER STATISTICS ROUTES
 

@@ -192,6 +192,7 @@ function App() {
 								onSessionUpdate={handleSessionUpdate}
 								onComplete={handleWorkoutComplete}
 								onAbandon={handleWorkoutAbandon}
+								onBack={() => setCurrentView('exercises')}
 							/>
 						)}
 						

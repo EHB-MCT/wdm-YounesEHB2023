@@ -118,10 +118,11 @@ export class UtilsService {
       (s.totalVolume || 0) > (max.totalVolume || 0) ? s : max, sessions[0]);
     
     // Calculate workout frequency (workouts per week)
+    let workoutFrequency = 0;
     if (completedSessions.length > 0) {
       const firstWorkout = new Date(Math.min(...completedSessions.map(s => new Date(s.startTime))));
       const weeksSinceFirst = Math.max(1, Math.ceil((Date.now() - firstWorkout) / (7 * 24 * 60 * 60 * 1000)));
-      const workoutFrequency = completedSessions.length / weeksSinceFirst;
+      workoutFrequency = completedSessions.length / weeksSinceFirst;
     }
     
     return {
@@ -133,7 +134,7 @@ export class UtilsService {
       mostRecentWorkout: sessions[0], // assuming sorted by date descending
       longestWorkout,
       strongestWorkout,
-      workoutFrequency: workoutFrequency || 0
+      workoutFrequency
     };
   }
   

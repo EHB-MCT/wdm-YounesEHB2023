@@ -40,21 +40,35 @@ export default function UserProfile({ onBack }) {
 			setLoading(true);
 			setError(null);
 			
+			console.log('Fetching stats for period:', selectedPeriod);
+			
 			const response = await fetch(`http://localhost:5000/api/workouts/stats/${selectedPeriod}`, {
 				headers: {
 					'Authorization': `Bearer ${localStorage.getItem('token')}`
 				}
 			});
 			
+			console.log('Stats response status:', response.status);
+			
 			if (!response.ok) {
-				throw new Error('Failed to fetch statistics');
+				const errorText = await response.text();
+				console.error('Stats error response:', errorText);
+				throw new Error(`Failed to fetch statistics: ${response.status} ${errorText}`);
 			}
 			
 			const data = await response.json();
-			setStats(data);
+			console.log('Stats data received:', data);
+			
+			// Check if data is empty or indicates no workouts
+			if (!data || data.totalWorkouts === 0 || Object.keys(data).length === 0) {
+				console.log('No workout data found, showing empty state');
+				setStats({ totalWorkouts: 0 }); // Set to show empty state
+			} else {
+				setStats(data);
+			}
 		} catch (error) {
 			console.error('Error fetching stats:', error);
-			setError('Failed to load statistics');
+			setError(`Failed to load statistics: ${error.message}`);
 		} finally {
 			setLoading(false);
 		}
@@ -229,21 +243,53 @@ export default function UserProfile({ onBack }) {
 			{!loading && (!stats || stats.totalWorkouts === 0) && (
 				<div className="empty-state">
 					<div className="empty-state-content">
-						<h2>No Workout Data Yet</h2>
-						<p>Start tracking your workouts to see your progress here!</p>
-						<div className="empty-state-actions">
-							<button onClick={onBack} className="btn btn-primary">
-								Start Your First Workout
-							</button>
-						</div>
+						<div className="empty-state-icon">🎯</div>
+						<h2>Your Fitness Journey Starts Here!</h2>
+						<p>You haven't tracked any workouts yet. Start your first workout to see your progress!</p>
 						<div className="empty-state-features">
-							<h3>What you'll see once you start:</h3>
-							<ul>
-								<li>📊 Workout frequency and completion rates</li>
-								<li>💪 Personal records and achievements</li>
-								<li>📈 Progress trends over time</li>
-								<li>🎯 Muscle group distribution</li>
-							</ul>
+							<h3>Once you start tracking, you'll see:</h3>
+							<div className="features-grid">
+								<div className="feature-item">
+									<span className="feature-icon">📊</span>
+									<div>
+										<h4>Workout Frequency</h4>
+										<p>Your training consistency and patterns</p>
+									</div>
+								</div>
+								<div className="feature-item">
+									<span className="feature-icon">💪</span>
+									<div>
+										<h4>Personal Records</h4>
+										<p>Your achievements and best performances</p>
+									</div>
+								</div>
+								<div className="feature-item">
+									<span className="feature-icon">📈</span>
+									<div>
+										<h4>Progress Trends</h4>
+										<p>Your improvement over time</p>
+									</div>
+								</div>
+								<div className="feature-item">
+									<span className="feature-icon">🎯</span>
+									<div>
+										<h4>Muscle Groups</h4>
+										<p>Your training balance and focus areas</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div className="empty-state-actions">
+							<button onClick={onBack} className="btn btn-primary btn-large">
+								🏋️ Start Your First Workout
+							</button>
+							<span className="action-divider">or</span>
+							<button onClick={() => {
+								// This would need to be passed as a prop or handled differently
+								onBack(); // Go back to create template
+							}} className="btn btn-secondary btn-large">
+								📋 Create Template
+							</button>
 						</div>
 					</div>
 				</div>
