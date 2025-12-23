@@ -185,192 +185,240 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	
 	return (
 		<div className="workout-template-builder">
-			<div className="template-builder-header">
-				<h2>{initialTemplate ? "Edit Workout Template" : "Create Workout Template"}</h2>
-				<div className="template-builder-actions">
-					<button 
-						onClick={onCancel} 
-						className="btn btn-secondary"
-						disabled={isSaving}
-					>
-						Cancel
-					</button>
-					<button 
-						onClick={handleSave} 
-						className="btn btn-primary"
-						disabled={isSaving}
-					>
-						{isSaving ? "Saving..." : (initialTemplate ? "Update Template" : "Save Template")}
-					</button>
-				</div>
-			</div>
-			
-			<div className="template-builder-content">
-				<div className="template-info-section">
-					<div className="form-group">
-						<label>Template Name *</label>
-						<input
-							type="text"
-							value={template.name}
-							onChange={(e) => setTemplate(prev => ({ ...prev, name: e.target.value }))}
-							placeholder="e.g., Monday Upper Body"
-							maxLength={100}
-						/>
+			{/* Header Section */}
+			<header className="template-builder-header">
+				<div className="header-content">
+					<div className="header-text">
+						<h1>{initialTemplate ? "Edit Workout Template" : "Create Workout Template"}</h1>
+						<p>Design your perfect workout routine by adding exercises and configuring sets, reps, and rest periods</p>
 					</div>
-					
-					<div className="form-group">
-						<label>Category</label>
-						<select
-							value={template.category}
-							onChange={(e) => setTemplate(prev => ({ ...prev, category: e.target.value }))}
+					<div className="header-actions">
+						<button 
+							onClick={onCancel} 
+							className="btn btn-secondary"
+							disabled={isSaving}
 						>
-							{categories.map(cat => (
-								<option key={cat} value={cat}>{cat}</option>
-							))}
-						</select>
-					</div>
-					
-					<div className="form-group">
-						<label>Description</label>
-						<textarea
-							value={template.description}
-							onChange={(e) => setTemplate(prev => ({ ...prev, description: e.target.value }))}
-							placeholder="Optional description of this workout template..."
-							maxLength={500}
-							rows={3}
-						/>
+							Cancel
+						</button>
+						<button 
+							onClick={handleSave} 
+							className="btn btn-primary"
+							disabled={isSaving}
+						>
+							{isSaving ? "Saving..." : (initialTemplate ? "Update Template" : "Save Template")}
+						</button>
 					</div>
 				</div>
-				
-				<div className="template-exercises-section">
-					<h3>
-						Exercises ({template.exercises.length})
-						{template.exercises.length > 0 && (
-							<span className="category-suggestion">Category: {template.category}</span>
-						)}
-					</h3>
-					
-					{template.exercises.length === 0 ? (
-						<div className="empty-exercises">
-							<p>No exercises added yet. Add exercises from the library below.</p>
+			</header>
+
+			<main className="template-builder-main">
+				{/* Template Information Card */}
+				<section className="template-info-card">
+					<div className="card-header">
+						<h2>Template Information</h2>
+						<div className="card-icon">📝</div>
+					</div>
+					<div className="card-content">
+						<div className="form-row">
+							<div className="form-group">
+								<label htmlFor="template-name">Template Name *</label>
+								<input
+									id="template-name"
+									type="text"
+									value={template.name}
+									onChange={(e) => setTemplate(prev => ({ ...prev, name: e.target.value }))}
+									placeholder="e.g., Monday Upper Body"
+									maxLength={100}
+									className="form-input"
+								/>
+								<small className="form-hint">Give your workout a memorable name</small>
+							</div>
+							
+							<div className="form-group">
+								<label htmlFor="template-category">Category</label>
+								<select
+									id="template-category"
+									value={template.category}
+									onChange={(e) => setTemplate(prev => ({ ...prev, category: e.target.value }))}
+									className="form-select"
+								>
+									{categories.map(cat => (
+										<option key={cat} value={cat}>{cat}</option>
+									))}
+								</select>
+								<small className="form-hint">Auto-suggested based on exercises</small>
+							</div>
 						</div>
-					) : (
-						<div className="template-exercises-list">
-							{template.exercises.map((exercise, index) => (
-								<div key={exercise.exerciseId} className="template-exercise-item">
-									<div className="exercise-header">
-										<div className="exercise-info">
-											<span className="exercise-number">{index + 1}</span>
-											<div>
-												<h4>{exercise.exerciseName}</h4>
-												<small>{exercise.muscleGroup} • {exercise.difficulty}</small>
+						
+						<div className="form-group">
+							<label htmlFor="template-description">Description</label>
+							<textarea
+								id="template-description"
+								value={template.description}
+								onChange={(e) => setTemplate(prev => ({ ...prev, description: e.target.value }))}
+								placeholder="Describe the focus of this workout, goals, or any special notes..."
+								maxLength={500}
+								rows={3}
+								className="form-textarea"
+							/>
+							<small className="form-hint">Optional: Help users understand when to use this template</small>
+						</div>
+					</div>
+				</section>
+
+				{/* Template Exercises Section */}
+				<section className="template-exercises-card">
+					<div className="card-header">
+						<div className="header-left">
+							<h2>Workout Exercises</h2>
+							<span className="exercise-count">{template.exercises.length} exercises</span>
+						</div>
+						{template.exercises.length > 0 && (
+							<div className="category-badge">
+								{template.category}
+							</div>
+						)}
+					</div>
+					
+					<div className="card-content">
+						{template.exercises.length === 0 ? (
+							<div className="empty-state">
+								<div className="empty-icon">🏋️</div>
+								<h3>No exercises added yet</h3>
+								<p>Start building your workout by adding exercises from the exercise library below</p>
+							</div>
+						) : (
+							<div className="exercises-list">
+								{template.exercises.map((exercise, index) => (
+									<div key={exercise.exerciseId} className="exercise-card">
+										<div className="exercise-card-header">
+											<div className="exercise-order">
+												<span className="order-number">{index + 1}</span>
+											</div>
+											<div className="exercise-info">
+												<h3>{exercise.exerciseName}</h3>
+												<div className="exercise-meta">
+													<span className="muscle-group">{exercise.muscleGroup}</span>
+													<span className="separator">•</span>
+													<span className="difficulty">{exercise.difficulty}</span>
+													<span className="separator">•</span>
+													<span className="equipment">{exercise.equipment}</span>
+												</div>
+											</div>
+											<div className="exercise-controls">
+												<div className="reorder-controls">
+													<button
+														onClick={() => moveExercise(index, 'up')}
+														disabled={index === 0}
+														className="btn-icon btn-up"
+														title="Move up"
+														aria-label="Move exercise up"
+													>
+														↑
+													</button>
+													<button
+														onClick={() => moveExercise(index, 'down')}
+														disabled={index === template.exercises.length - 1}
+														className="btn-icon btn-down"
+														title="Move down"
+														aria-label="Move exercise down"
+													>
+														↓
+													</button>
+												</div>
+												<button
+													onClick={() => removeExerciseFromTemplate(exercise.exerciseId)}
+													className="btn-icon btn-remove"
+													title="Remove exercise"
+													aria-label="Remove exercise"
+												>
+													✕
+												</button>
 											</div>
 										</div>
 										
-										<div className="exercise-actions">
-											<button
-												onClick={() => moveExercise(index, 'up')}
-												disabled={index === 0}
-												className="btn-icon"
-												title="Move up"
-											>
-												↑
-											</button>
-											<button
-												onClick={() => moveExercise(index, 'down')}
-												disabled={index === template.exercises.length - 1}
-												className="btn-icon"
-												title="Move down"
-											>
-												↓
-											</button>
-											<button
-												onClick={() => removeExerciseFromTemplate(exercise.exerciseId)}
-												className="btn-icon btn-remove"
-												title="Remove exercise"
-											>
-												✕
-											</button>
+										<div className="exercise-settings">
+											<div className="settings-grid">
+												<div className="setting-item">
+													<label>Sets</label>
+													<input
+														type="number"
+														min="1"
+														max="10"
+														value={exercise.targetSets}
+														onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'targetSets', parseInt(e.target.value))}
+														className="setting-input"
+													/>
+												</div>
+												
+												<div className="setting-item">
+													<label>Reps</label>
+													<input
+														type="text"
+														value={exercise.targetReps}
+														onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'targetReps', e.target.value)}
+														placeholder="e.g., 10 or 8-12"
+														className="setting-input"
+													/>
+												</div>
+												
+												<div className="setting-item">
+													<label>Weight (kg)</label>
+													<input
+														type="number"
+														min="0"
+														step="0.5"
+														value={exercise.targetWeight}
+														onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'targetWeight', parseFloat(e.target.value))}
+														className="setting-input"
+													/>
+												</div>
+												
+												<div className="setting-item">
+													<label>Rest (sec)</label>
+													<input
+														type="number"
+														min="0"
+														max="600"
+														value={exercise.restTime}
+														onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'restTime', parseInt(e.target.value))}
+														className="setting-input"
+													/>
+												</div>
+											</div>
 										</div>
 									</div>
-									
-									<div className="exercise-settings">
-										<div className="setting-group">
-											<label>Sets</label>
-											<input
-												type="number"
-												min="1"
-												max="10"
-												value={exercise.targetSets}
-												onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'targetSets', parseInt(e.target.value))}
-											/>
-										</div>
-										
-										<div className="setting-group">
-											<label>Reps</label>
-											<input
-												type="text"
-												value={exercise.targetReps}
-												onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'targetReps', e.target.value)}
-												placeholder="e.g., 10 or 8-12"
-											/>
-										</div>
-										
-										<div className="setting-group">
-											<label>Weight (kg)</label>
-											<input
-												type="number"
-												min="0"
-												step="0.5"
-												value={exercise.targetWeight}
-												onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'targetWeight', parseFloat(e.target.value))}
-											/>
-										</div>
-										
-										<div className="setting-group">
-											<label>Rest (sec)</label>
-											<input
-												type="number"
-												min="0"
-												max="600"
-												value={exercise.restTime}
-												onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'restTime', parseInt(e.target.value))}
-											/>
-										</div>
-										
-										<div className="setting-group">
-											<label>Exercise Rest (sec)</label>
-											<input
-												type="number"
-												min="0"
-												max="600"
-												value={exercise.exerciseRestTime}
-												onChange={(e) => updateExerciseInTemplate(exercise.exerciseId, 'exerciseRestTime', parseInt(e.target.value))}
-											/>
-										</div>
-									</div>
-								</div>
-							))}
+								))}
+							</div>
+						)}
+					</div>
+				</section>
+
+				{/* Exercise Library Section */}
+				<section className="exercise-library-card">
+					<div className="card-header">
+						<h2>Exercise Library</h2>
+						<div className="library-stats">
+							{filteredExercises.length} {filteredExercises.length === 1 ? 'exercise' : 'exercises'} found
 						</div>
-					)}
-				</div>
-				
-				<div className="exercise-library-section">
-					<h3>Add Exercises</h3>
+					</div>
 					
-					<div className="exercise-filters">
-						<input
-							type="text"
-							placeholder="Search exercises..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="search-input"
-						/>
+					<div className="library-filters">
+						<div className="search-box">
+							<input
+								type="text"
+								placeholder="Search exercises by name..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="search-input"
+							/>
+							<div className="search-icon">🔍</div>
+						</div>
 						
 						<select
 							value={selectedCategory}
 							onChange={(e) => setSelectedCategory(e.target.value)}
-							className="category-filter"
+							className="filter-select"
 						>
 							<option value="all">All Muscle Groups</option>
 							{muscleGroups.map(group => (
@@ -379,64 +427,68 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 						</select>
 					</div>
 					
-					<div className="exercise-library-grid">
+					<div className="exercise-grid">
 						{filteredExercises.map(exercise => {
 							const isAdded = selectedExercises.includes(exercise.id);
 							const isExpanded = expandedExerciseDetails.has(exercise.id);
 							return (
 								<div
 									key={exercise.id}
-									className={`exercise-library-item ${isAdded ? 'added' : ''} ${isExpanded ? 'expanded' : ''}`}
+									className={`exercise-tile ${isAdded ? 'added' : ''} ${isExpanded ? 'expanded' : ''}`}
 								>
-									<div className="exercise-item-header">
-										<div className="exercise-item-content">
-											<h4>{exercise.name}</h4>
-											<div className="exercise-meta">
-												<span>{exercise.muscleGroup}</span>
-												<span>•</span>
-												<span>{exercise.difficulty}</span>
-												<span>•</span>
-												<span>{exercise.equipment}</span>
+									<div className="exercise-tile-header">
+										<div className="exercise-tile-content">
+											<h3>{exercise.name}</h3>
+											<div className="exercise-tags">
+												<span className="tag muscle">{exercise.muscleGroup}</span>
+												<span className="tag difficulty">{exercise.difficulty}</span>
+											</div>
+											<div className="equipment-info">
+												🏋️ {exercise.equipment}
 											</div>
 										</div>
 										
-										<div className="exercise-item-actions">
+										<div className="exercise-tile-actions">
 											<button 
-												className="btn-icon view-details-btn"
+												className="btn-icon expand-btn"
 												onClick={() => toggleExerciseDetails(exercise.id)}
-												title="View exercise details"
+												title={isExpanded ? "Hide details" : "Show details"}
+												aria-expanded={isExpanded}
 											>
 												{isExpanded ? '▼' : '▶'}
 											</button>
 											{!isAdded ? (
 												<button 
-													className="btn btn-small btn-primary"
+													className="btn btn-add"
 													onClick={() => addExerciseToTemplate(exercise)}
 												>
 													+ Add
 												</button>
 											) : (
-												<span className="added-indicator">✓ Added</span>
+												<span className="added-badge">✓ Added</span>
 											)}
 										</div>
 									</div>
 									
 									{isExpanded && (
-										<div className="exercise-item-details">
+										<div className="exercise-details">
 											{exercise.video ? (
-												<video className="exercise-preview-video" controls preload="metadata">
-													<source src={exercise.video} type="video/mp4" />
-													Your browser does not support the video tag.
-												</video>
+												<div className="video-container">
+													<video className="exercise-video" controls preload="metadata">
+														<source src={exercise.video} type="video/mp4" />
+														Your browser does not support the video tag.
+													</video>
+												</div>
 											) : (
-												<div className="no-video-placeholder">
-													No video available
+												<div className="no-video">
+													<div className="no-video-icon">📹</div>
+													<p>No video available</p>
 												</div>
 											)}
 											
 											{exercise.instructions && exercise.instructions.length > 0 && (
-												<div className="exercise-instructions">
-													<h5>Instructions:</h5>
+												<div className="instructions">
+													<h4>Instructions:</h4>
 													<ol>
 														{exercise.instructions.map((instruction, idx) => (
 															<li key={idx}>{instruction}</li>
@@ -445,14 +497,14 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 												</div>
 											)}
 											
-											<div className="exercise-additional-info">
-												<div className="info-row">
-													<span className="info-label">Equipment:</span>
-													<span className="info-value">{exercise.equipment}</span>
+											<div className="exercise-meta-details">
+												<div className="meta-row">
+													<span className="meta-label">Equipment:</span>
+													<span className="meta-value">{exercise.equipment}</span>
 												</div>
-												<div className="info-row">
-													<span className="info-label">Difficulty:</span>
-													<span className="info-value">{exercise.difficulty}</span>
+												<div className="meta-row">
+													<span className="meta-label">Difficulty:</span>
+													<span className="meta-value">{exercise.difficulty}</span>
 												</div>
 											</div>
 										</div>
@@ -461,8 +513,8 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 							);
 						})}
 					</div>
-				</div>
-			</div>
+				</section>
+			</main>
 		</div>
 	);
 }
