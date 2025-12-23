@@ -7,6 +7,8 @@ export default function AdminDashboard() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [selectedUser, setSelectedUser] = useState(null);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [filterType, setFilterType] = useState('all');
 
 	const adminToken = localStorage.getItem('adminToken');
 
@@ -58,10 +60,33 @@ export default function AdminDashboard() {
 		window.location.href = '/';
 	};
 
+	const getFilteredUsers = () => {
+		let filtered = userInsights;
+		
+		// Apply search filter
+		if (searchTerm) {
+			filtered = filtered.filter(user => 
+				user.email.toLowerCase().includes(searchTerm.toLowerCase())
+			);
+		}
+		
+		// Apply type filter
+		if (filterType !== 'all') {
+			filtered = filtered.filter(user => 
+				user.userType.toLowerCase() === filterType
+			);
+		}
+		
+		return filtered;
+	};
+
 	if (loading) {
 		return (
 			<div className="admin-dashboard">
-				<div className="loading-text">Loading admin dashboard...</div>
+				<div className="loading-text">
+					<div className="loading-spinner"></div>
+					Loading admin dashboard...
+				</div>
 			</div>
 		);
 	}
@@ -116,9 +141,36 @@ export default function AdminDashboard() {
 					</div>
 				</section>
 
-	{/* Users Table with Insights */}
+				{/* Users Table with Insights */}
 				<section className="admin-users">
 					<h2>User Management & Insights</h2>
+					
+					{/* Search and Filter Controls */}
+					<div className="users-controls">
+						<div className="search-container">
+							<input
+								type="text"
+								placeholder="Search users by email..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="search-input"
+							/>
+						</div>
+						<div className="filter-container">
+							<select
+								value={filterType}
+								onChange={(e) => setFilterType(e.target.value)}
+								className="filter-select"
+							>
+								<option value="all">All Users</option>
+								<option value="motivated">Motivated</option>
+								<option value="unmotivated">Unmotivated</option>
+								<option value="expert">Expert</option>
+								<option value="new">New</option>
+							</select>
+						</div>
+					</div>
+					
 					<div className="users-table-container">
 						<table className="users-table">
 							<thead>
@@ -131,8 +183,8 @@ export default function AdminDashboard() {
 								</tr>
 							</thead>
 							<tbody>
-								{userInsights.length > 0 ? (
-									userInsights.map((user, index) => (
+								{getFilteredUsers().length > 0 ? (
+									getFilteredUsers().map((user, index) => (
 										<tr key={user.id || index}>
 											<td>{user.email}</td>
 											<td>
@@ -168,7 +220,9 @@ export default function AdminDashboard() {
 									))
 								) : (
 									<tr>
-										<td colSpan="5" className="no-users">No user insights available</td>
+										<td colSpan="5" className="no-users">
+											{userInsights.length === 0 ? 'No user insights available' : 'No users match your search criteria'}
+										</td>
 									</tr>
 								)}
 							</tbody>
@@ -181,46 +235,65 @@ export default function AdminDashboard() {
 					<div className="user-details-modal" onClick={() => setSelectedUser(null)}>
 						<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 							<div className="modal-header">
-								<h3>User Insights: {selectedUser.name}</h3>
+								<h3>User Insights: {selectedUser.name || selectedUser.email}</h3>
 								<button className="close-btn" onClick={() => setSelectedUser(null)}>✕</button>
 							</div>
 							<div className="modal-body">
 								<div className="user-detail-section">
-									<h4>Basic Information</h4>
+									<h4>📋 Basic Information</h4>
 									<p><strong>Email:</strong> {selectedUser.email}</p>
 									<p><strong>User Type:</strong> <span className={`profile-badge profile-${selectedUser.userType.toLowerCase()}`}>{selectedUser.userType}</span></p>
 								</div>
 								
 								<div className="user-detail-section">
-									<h4>Performance Metrics</h4>
-									<p><strong>Total Interactions:</strong> {selectedUser.metrics.totalInteractions}</p>
-									<p><strong>Workout Sessions:</strong> {selectedUser.metrics.workoutSessions}</p>
-									<p><strong>Workout Completion Rate:</strong> {Math.round((selectedUser.metrics.workoutCompletionRate || 0) * 100)}%</p>
-									<p><strong>Consistency Score:</strong> {Math.round((selectedUser.metrics.consistencyScore || 0) * 100)}%</p>
+									<h4>📊 Performance Metrics</h4>
+									<div className="metrics-grid">
+										<div className="metric-item">
+											<span className="metric-label">Total Interactions</span>
+											<span className="metric-value">{selectedUser.metrics?.totalInteractions || 0}</span>
+										</div>
+										<div className="metric-item">
+											<span className="metric-label">Workout Sessions</span>
+											<span className="metric-value">{selectedUser.metrics?.workoutSessions || 0}</span>
+										</div>
+										<div className="metric-item">
+											<span className="metric-label">Completion Rate</span>
+											<span className="metric-value">{Math.round((selectedUser.metrics?.workoutCompletionRate || 0) * 100)}%</span>
+										</div>
+										<div className="metric-item">
+											<span className="metric-label">Consistency Score</span>
+											<span className="metric-value">{Math.round((selectedUser.metrics?.consistencyScore || 0) * 100)}%</span>
+										</div>
+									</div>
 								</div>
 
 								<div className="user-detail-section">
-									<h4>Top Exercises</h4>
-									{selectedUser.topExercises.length > 0 ? (
+									<h4>💪 Top Exercises</h4>
+									{selectedUser.topExercises && selectedUser.topExercises.length > 0 ? (
 										<ul className="top-exercises">
 											{selectedUser.topExercises.map((exercise, index) => (
 												<li key={index}>
-													Exercise ID: {exercise.exerciseId} ({exercise.interactionCount} interactions)
+													<span className="exercise-name">Exercise ID: {exercise.exerciseId}</span>
+													<span className="exercise-count">{exercise.interactionCount} interactions</span>
 												</li>
 											))}
 										</ul>
 									) : (
-										<p>No exercise data available</p>
+										<p className="no-data">No exercise data available</p>
 									)}
 								</div>
 
 								<div className="user-detail-section">
-									<h4>Insights & Recommendations</h4>
-									<ul className="insights-list">
-										{selectedUser.insights.map((insight, index) => (
-											<li key={index}>{insight}</li>
-										))}
-									</ul>
+									<h4>💡 Insights & Recommendations</h4>
+									{selectedUser.insights && selectedUser.insights.length > 0 ? (
+										<ul className="insights-list">
+											{selectedUser.insights.map((insight, index) => (
+												<li key={index}>{insight}</li>
+											))}
+										</ul>
+									) : (
+										<p className="no-data">No insights available</p>
+									)}
 								</div>
 							</div>
 						</div>
