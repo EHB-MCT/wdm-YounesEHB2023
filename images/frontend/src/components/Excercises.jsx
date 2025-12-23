@@ -3,7 +3,7 @@ import "../App.css";
 import exercisesData from "./gym_exercises.json";
 import Filter from "./Filter";
 import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
-import trackEvent, { trackExerciseHover, trackTimeToClick, trackExerciseSelect } from "../utils/trackEvent";
+import trackEvent from "../utils/trackEvent";
 
 export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate }) {
 	const [exercises, setExercises] = useState([]);
@@ -13,16 +13,15 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		equipment: "",
 		difficulty: "",
 	});
-	const [exerciseHoverTimers, setExerciseHoverTimers] = useState({});
-	const [pageLoadTime] = useState(new Date().getTime());
+	
 	const [templates, setTemplates] = useState([]);
 	const [personalRecords, setPersonalRecords] = useState({});
 	const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
 	const [editingTemplate, setEditingTemplate] = useState(null);
-	const [expandedInstructions, setExpandedInstructions] = useState(new Set());
+	
 	const [showWorkoutStarter, setShowWorkoutStarter] = useState(false);
-	const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-	const [selectedExerciseForTemplate, setSelectedExerciseForTemplate] = useState(null);
+	const [expandedInstructions, setExpandedInstructions] = useState(new Set());
+	
 
 // Load exercises and user data
 	useEffect(() => {
@@ -84,105 +83,11 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		return matchMuscle && matchEquipment && matchDifficulty;
 	});
 
-	// Track clicks with enhanced data
-	const handleExerciseClick = (exercise) => {
-		const timeOnPage = (new Date().getTime() - pageLoadTime) / 1000; // in seconds
-		
-		trackEvent("exercise_click", {
-			id: exercise.id,
-			name: exercise.name,
-			muscleGroup: exercise.muscleGroup,
-			equipment: exercise.equipment,
-			difficulty: exercise.difficulty,
-		});
-		
-		trackTimeToClick(exercise.id, timeOnPage);
-		trackExerciseSelect(exercise.id, 'view_details');
-	};
+	
 
-	// Add exercise to workout template
-	const handleAddToTemplate = (exercise, e) => {
-		e.stopPropagation();
-		trackExerciseSelect(exercise.id, 'added_to_template');
-		
-		// Open template selector modal
-		setSelectedExerciseForTemplate(exercise);
-		setShowTemplateSelector(true);
-	};
 	
-	// Handle template selection for adding exercise
-	const handleTemplateSelection = async (template) => {
-		if (!selectedExerciseForTemplate) return;
-		
-		try {
-			const token = localStorage.getItem('token');
-			
-			// Add exercise to existing template
-			const updatedExercises = [...template.exercises, {
-				exerciseId: selectedExerciseForTemplate.id,
-				exerciseName: selectedExerciseForTemplate.name,
-				muscleGroup: selectedExerciseForTemplate.muscleGroup || selectedExerciseForTemplate.primaryMuscles?.[0] || 'General',
-				targetSets: 3,
-				targetReps: '10',
-				targetWeight: 0,
-				restTime: 60,
-				order: template.exercises.length + 1
-			}];
-			
-			const response = await fetch(`http://localhost:5000/api/workouts/template/${template._id}`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`
-				},
-				body: JSON.stringify({
-					...template,
-					exercises: updatedExercises
-				})
-			});
-			
-			if (response.ok) {
-				const updatedTemplate = await response.json();
-				setTemplates(prev => prev.map(t => t._id === template._id ? updatedTemplate : t));
-				alert(`"${selectedExerciseForTemplate.name}" added to "${template.name}" template!`);
-				setShowTemplateSelector(false);
-				setSelectedExerciseForTemplate(null);
-			} else {
-				const error = await response.json();
-				alert(`Failed to add exercise to template: ${error.error || 'Unknown error'}`);
-			}
-		} catch (error) {
-			console.error('Error adding exercise to template:', error);
-			alert('Failed to add exercise to template. Please try again.');
-		}
-	};
 	
-	// Handle creating new template from exercise
-	const handleCreateTemplateFromExercise = () => {
-		if (!selectedExerciseForTemplate) return;
-		
-		const initialExercise = {
-			exerciseId: selectedExerciseForTemplate.id,
-			exerciseName: selectedExerciseForTemplate.name,
-			muscleGroup: selectedExerciseForTemplate.muscleGroup || selectedExerciseForTemplate.primaryMuscles?.[0] || 'General',
-			targetSets: 3,
-			targetReps: '10',
-			targetWeight: 0,
-			restTime: 60
-		};
-		
-		const initialTemplate = {
-			name: `${selectedExerciseForTemplate.name} Workout`,
-			description: `Quick workout focused on ${selectedExerciseForTemplate.name}`,
-			category: selectedExerciseForTemplate.muscleGroup || selectedExerciseForTemplate.primaryMuscles?.[0] || 'General',
-			exercises: [initialExercise]
-		};
-		
-		setEditingTemplate(initialTemplate);
-		setShowTemplateBuilder(true);
-		setShowTemplateSelector(false);
-		setSelectedExerciseForTemplate(null);
-	};
+	
 	
 	// Check if exercise is in user's templates
 	const isExerciseInTemplates = (exerciseId) => {
@@ -299,43 +204,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		}
 	};
 	
-	// Toggle instructions visibility
-	const toggleInstructions = (exerciseId) => {
-		const newExpanded = new Set(expandedInstructions);
-		if (newExpanded.has(exerciseId)) {
-			newExpanded.delete(exerciseId);
-		} else {
-			newExpanded.add(exerciseId);
-		}
-		setExpandedInstructions(newExpanded);
-	};
-
-	// Track hover events
-	const handleExerciseHover = (exerciseId, isEntering) => {
-		if (isEntering) {
-			// Start hover timer
-			const startTime = new Date().getTime();
-			setExerciseHoverTimers(prev => ({
-				...prev,
-				[exerciseId]: startTime
-			}));
-		} else {
-			// End hover and track duration
-			const startTime = exerciseHoverTimers[exerciseId];
-			if (startTime) {
-				const endTime = new Date().getTime();
-				const hoverDuration = (endTime - startTime) / 1000; // in seconds
-				trackExerciseHover(exerciseId, hoverDuration);
-				
-				// Clean up timer
-				setExerciseHoverTimers(prev => {
-					const newTimers = { ...prev };
-					delete newTimers[exerciseId];
-					return newTimers;
-				});
-			}
-		}
-	};
+	
 
 	return (
 		<div className="exercise-container">
@@ -353,7 +222,16 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 						</button>
 					)}
 					
-
+					{onCreateTemplate && (
+						<button 
+							onClick={() => {
+								onCreateTemplate();
+							}}
+							className="btn btn-secondary create-template-btn"
+						>
+							📝 Create Template
+						</button>
+					)}
 					
 					{onViewHistory && (
 						<button 
@@ -463,9 +341,6 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 							<div
 								key={ex.id}
 								className={`exercise-card enhanced ${isInTemplates ? 'in-templates' : ''}`}
-								onClick={() => handleExerciseClick(ex)}
-								onMouseEnter={() => handleExerciseHover(ex.id, true)}
-								onMouseLeave={() => handleExerciseHover(ex.id, false)}
 							>
 								{/* Exercise Header with Indicators */}
 								<div className="exercise-card-header">
@@ -518,21 +393,12 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 									</p>
 								</div>
 
-								{/* Exercise Actions */}
-								<div className="exercise-actions">
-									<button
-										onClick={(e) => handleAddToTemplate(ex, e)}
-										className="btn btn-small btn-secondary add-to-template-btn"
-									>
-										➕ Add to Template
-									</button>
-									
-									{personalRecord && (
-										<div className="exercise-pr-summary">
-											<small>PR: {personalRecord.weight?.displayValue || personalRecord.reps?.displayValue || personalRecord.volume?.displayValue}</small>
-										</div>
-									)}
-								</div>
+								{/* Exercise PR Summary */}
+								{personalRecord && (
+									<div className="exercise-pr-summary">
+										<small>PR: {personalRecord.weight?.displayValue || personalRecord.reps?.displayValue || personalRecord.volume?.displayValue}</small>
+									</div>
+								)}
 
 								{ex.instructions && ex.instructions.length > 0 && (
 									<div className="exercise-instructions">
@@ -540,7 +406,13 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 											className="instructions-toggle"
 											onClick={(e) => {
 												e.stopPropagation();
-												toggleInstructions(ex.id);
+												const newExpanded = new Set(expandedInstructions);
+												if (newExpanded.has(ex.id)) {
+													newExpanded.delete(ex.id);
+												} else {
+													newExpanded.add(ex.id);
+												}
+												setExpandedInstructions(newExpanded);
 											}}
 											title="Click to view exercise instructions and form"
 										>
@@ -555,6 +427,8 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 										)}
 									</div>
 								)}
+
+								
 							</div>
 						);
 					})
@@ -668,80 +542,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 				</div>
 			)}
 			
-			{/* Template Selector Modal */}
-			{showTemplateSelector && (
-				<div className="modal-overlay" onClick={() => {
-					setShowTemplateSelector(false);
-					setSelectedExerciseForTemplate(null);
-				}}>
-					<div className="modal-content template-selector-modal" onClick={(e) => e.stopPropagation()}>
-						<div className="modal-header">
-							<h2>Add "{selectedExerciseForTemplate?.name}" to Template</h2>
-							<button 
-								onClick={() => {
-									setShowTemplateSelector(false);
-									setSelectedExerciseForTemplate(null);
-								}}
-								className="close-btn"
-							>
-								×
-							</button>
-						</div>
-						
-						<div className="modal-body">
-							{templates.length > 0 ? (
-								<>
-									<h3>Select an existing template:</h3>
-									<div className="template-selector-grid">
-										{templates.map(template => (
-											<div key={template._id} className="template-selector-card">
-												<div className="template-selector-header">
-													<h4>{template.name}</h4>
-													<span className="template-category">{template.category}</span>
-												</div>
-												<div className="template-selector-meta">
-													<span className="template-exercises-count">{template.exercises.length} exercises</span>
-												</div>
-												<div className="template-selector-description">
-													<p>{template.description || 'No description'}</p>
-												</div>
-												<button 
-													onClick={() => handleTemplateSelection(template)}
-													className="btn btn-primary btn-small"
-												>
-													Add to This Template
-												</button>
-											</div>
-										))}
-									</div>
-								</>
-							) : (
-								<div className="no-templates-message">
-									<p>You don't have any templates yet.</p>
-								</div>
-							)}
-							
-							<div className="template-selector-actions">
-								<button 
-									onClick={handleCreateTemplateFromExercise}
-									className="btn btn-secondary"
-								>
-									➕ Create New Template
-								</button>
-								<button 
-									onClick={() => {
-										setShowTemplateSelector(false);
-										setSelectedExerciseForTemplate(null);
-									}}
-									className="btn btn-outline"
-								>
-									Cancel
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			
 		</div>
 	);
 }

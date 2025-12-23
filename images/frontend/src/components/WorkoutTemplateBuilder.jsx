@@ -16,6 +16,7 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [isSaving, setIsSaving] = useState(false);
+	const [expandedExerciseDetails, setExpandedExerciseDetails] = useState(new Set());
 	
 	const muscleGroups = [...new Set(exercisesData.map(ex => ex.muscleGroup))];
 	const categories = ["Upper Body", "Lower Body", "Full Body", "Core", "Cardio", "Custom"];
@@ -52,6 +53,16 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 			muscleGroup: exercise.muscleGroup,
 			templateName: template.name || "New Template"
 		});
+	};
+
+	const toggleExerciseDetails = (exerciseId) => {
+		const newExpanded = new Set(expandedExerciseDetails);
+		if (newExpanded.has(exerciseId)) {
+			newExpanded.delete(exerciseId);
+		} else {
+			newExpanded.add(exerciseId);
+		}
+		setExpandedExerciseDetails(newExpanded);
 	};
 	
 	const removeExerciseFromTemplate = (exerciseId) => {
@@ -371,30 +382,81 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 					<div className="exercise-library-grid">
 						{filteredExercises.map(exercise => {
 							const isAdded = selectedExercises.includes(exercise.id);
+							const isExpanded = expandedExerciseDetails.has(exercise.id);
 							return (
 								<div
 									key={exercise.id}
-									className={`exercise-library-item ${isAdded ? 'added' : ''}`}
-									onClick={() => !isAdded && addExerciseToTemplate(exercise)}
+									className={`exercise-library-item ${isAdded ? 'added' : ''} ${isExpanded ? 'expanded' : ''}`}
 								>
-									<div className="exercise-item-content">
-										<h4>{exercise.name}</h4>
-										<div className="exercise-meta">
-											<span>{exercise.muscleGroup}</span>
-											<span>•</span>
-											<span>{exercise.difficulty}</span>
-											<span>•</span>
-											<span>{exercise.equipment}</span>
+									<div className="exercise-item-header">
+										<div className="exercise-item-content">
+											<h4>{exercise.name}</h4>
+											<div className="exercise-meta">
+												<span>{exercise.muscleGroup}</span>
+												<span>•</span>
+												<span>{exercise.difficulty}</span>
+												<span>•</span>
+												<span>{exercise.equipment}</span>
+											</div>
+										</div>
+										
+										<div className="exercise-item-actions">
+											<button 
+												className="btn-icon view-details-btn"
+												onClick={() => toggleExerciseDetails(exercise.id)}
+												title="View exercise details"
+											>
+												{isExpanded ? '▼' : '▶'}
+											</button>
+											{!isAdded ? (
+												<button 
+													className="btn btn-small btn-primary"
+													onClick={() => addExerciseToTemplate(exercise)}
+												>
+													+ Add
+												</button>
+											) : (
+												<span className="added-indicator">✓ Added</span>
+											)}
 										</div>
 									</div>
 									
-									<div className="exercise-item-action">
-										{isAdded ? (
-											<span className="added-indicator">✓ Added</span>
-										) : (
-											<span className="add-indicator">+ Add</span>
-										)}
-									</div>
+									{isExpanded && (
+										<div className="exercise-item-details">
+											{exercise.video ? (
+												<video className="exercise-preview-video" controls preload="metadata">
+													<source src={exercise.video} type="video/mp4" />
+													Your browser does not support the video tag.
+												</video>
+											) : (
+												<div className="no-video-placeholder">
+													No video available
+												</div>
+											)}
+											
+											{exercise.instructions && exercise.instructions.length > 0 && (
+												<div className="exercise-instructions">
+													<h5>Instructions:</h5>
+													<ol>
+														{exercise.instructions.map((instruction, idx) => (
+															<li key={idx}>{instruction}</li>
+														))}
+													</ol>
+												</div>
+											)}
+											
+											<div className="exercise-additional-info">
+												<div className="info-row">
+													<span className="info-label">Equipment:</span>
+													<span className="info-value">{exercise.equipment}</span>
+												</div>
+												<div className="info-row">
+													<span className="info-label">Difficulty:</span>
+													<span className="info-value">{exercise.difficulty}</span>
+												</div>
+											</div>
+										</div>
+									)}
 								</div>
 							);
 						})}
