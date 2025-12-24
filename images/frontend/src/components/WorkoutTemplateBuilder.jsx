@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import exercisesData from "./gym_exercises.json";
 import trackEvent from "../utils/trackEvent";
+import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
 
 export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTemplate = null }) {
+	const { showError, showSuccess, showWarning } = useNotifications();
 	const [template, setTemplate] = useState({
 		name: initialTemplate?.name || "",
 		description: initialTemplate?.description || "",
@@ -30,7 +32,7 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	});
 	
 	const addExerciseToTemplate = (exercise) => {
-		// Check if exercise is already added (using string comparison to handle type issues)
+		// Fix ID type mismatch - ensure consistent string comparison
 		const exerciseIdStr = String(exercise.id);
 		const isAlreadyAdded = selectedExercises.some(id => String(id) === exerciseIdStr);
 		
@@ -162,7 +164,7 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	
 	const updateExerciseInTemplate = (exerciseId, field, value) => {
 		const updatedExercises = template.exercises.map(ex => 
-			ex.exerciseId === exerciseId ? { ...ex, [field]: value } : ex
+			String(ex.exerciseId) === String(exerciseId) ? { ...ex, [field]: value } : ex
 		);
 		setTemplate(prev => ({ ...prev, exercises: updatedExercises }));
 	};
@@ -228,12 +230,12 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	
 	const handleSave = async () => {
 		if (!template.name.trim()) {
-			alert("Please enter a template name");
+			showError("Please enter a template name");
 			return;
 		}
-		
+
 		if (template.exercises.length === 0) {
-			alert("Please add at least one exercise");
+			showWarning("Please add at least one exercise");
 			return;
 		}
 		
@@ -254,17 +256,10 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 				category: template.category,
 				exerciseCount: template.exercises.length
 			});
-		} catch (error) {
-			console.error("Error saving template:", error);
-			alert("Error saving template. Please try again.");
-			
-			trackEvent("template_save_error", {
-				name: template.name,
-				error: error.message
-			});
-		} finally {
-			setIsSaving(false);
-		}
+			} catch (error) {
+				console.error('Error saving template:', error);
+				showWorkoutError(error, 'template save', showError);
+			}
 	};
 
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Exercises from "./components/Excercises.jsx";
+import Exercises from "./components/Exercises.jsx";
 import Auth from "./pages/Auth.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import WorkoutSession from "./components/WorkoutSession.jsx";
@@ -9,6 +9,7 @@ import WorkoutHistory from "./components/WorkoutHistory.jsx";
 import WorkoutTemplateBuilder from "./components/WorkoutTemplateBuilder.jsx";
 import QuickWorkoutStarter from "./components/QuickWorkoutStarter.jsx";
 import AllInOneWorkout from "./components/AllInOneWorkout.jsx";
+import { NotificationProvider } from "./utils/notifications";
 
 function App() {
 	const [token, setToken] = useState(localStorage.getItem("token"));
@@ -151,7 +152,7 @@ function App() {
 	};
 
 	return (
-		<>
+		<NotificationProvider>
 			{/* Admin route */}
 			{isAdmin && <AdminPage />}
 
@@ -235,7 +236,7 @@ function App() {
 					</main>
 				</div>
 			)}
-		</>
+		</NotificationProvider>
 	);
 }
 

@@ -4,8 +4,11 @@ import exercisesData from "./gym_exercises.json";
 import Filter from "./Filter";
 import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
 import trackEvent from "../utils/trackEvent";
+import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
+import { API_CONFIG, api } from "../utils/api.js";
 
 export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate, onQuickWorkout }) {
+	const { showError, showSuccess, showWarning } = useNotifications();
 	const [exercises, setExercises] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filters, setFilters] = useState({
@@ -99,16 +102,8 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	
 	const fetchTemplates = async () => {
 		try {
-			const response = await fetch('http://localhost:5000/api/workouts/templates', {
-				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('token')}`
-				}
-			});
-			
-			if (response.ok) {
-				const data = await response.json();
-				setTemplates(data.templates || []);
-			}
+			const data = await api.get(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATES);
+			setTemplates(data.templates || []);
 		} catch (error) {
 			console.error('Error fetching templates:', error);
 		}
@@ -116,20 +111,12 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	
 	const fetchPersonalRecords = async () => {
 		try {
-			const response = await fetch('http://localhost:5000/api/workouts/records', {
-				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('token')}`
-				}
+			const data = await api.get('/api/workouts/records');
+			const recordsMap = {};
+			data.records.forEach(record => {
+				recordsMap[record.exerciseId] = record;
 			});
-			
-			if (response.ok) {
-				const data = await response.json();
-				const recordsMap = {};
-				data.records.forEach(record => {
-					recordsMap[record.exerciseId] = record;
-				});
-				setPersonalRecords(recordsMap);
-			}
+			setPersonalRecords(recordsMap);
 		} catch (error) {
 			console.error('Error fetching personal records:', error);
 		}
@@ -174,40 +161,24 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 // Handle template builder actions
 	const handleCreateTemplate = async (templateData) => {
 		try {
-			const token = localStorage.getItem('token');
 			const isEditing = editingTemplate && editingTemplate._id;
-			const url = isEditing 
-				? `http://localhost:5000/api/workouts/template/${editingTemplate._id}`
-				: 'http://localhost:5000/api/workouts/template';
-			const method = isEditing ? 'PUT' : 'POST';
+			let result;
 			
-			const response = await fetch(url, {
-				method: method,
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`
-				},
-				body: JSON.stringify(templateData)
-			});
-			
-			if (response.ok) {
-				const result = await response.json();
-				if (isEditing) {
-					setTemplates(prev => prev.map(t => t._id === editingTemplate._id ? result.template : t));
-					alert('Template updated successfully!');
-				} else {
-					setTemplates(prev => [...prev, result.template]);
-					alert('Template created successfully!');
-				}
-				setShowTemplateBuilder(false);
-				setEditingTemplate(null);
+			if (isEditing) {
+				result = await api.put(`${API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATE}/${editingTemplate._id}`, templateData);
+				setTemplates(prev => prev.map(t => t._id === editingTemplate._id ? result.template : t));
+				showSuccess('Template updated successfully!');
 			} else {
-				const error = await response.json();
-				alert(`Failed to ${isEditing ? 'update' : 'create'} template: ` + (error.error || 'Unknown error'));
+				result = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATE, templateData);
+				setTemplates(prev => [...prev, result.template]);
+				showSuccess('Template created successfully!');
 			}
+			
+			setShowTemplateBuilder(false);
+			setEditingTemplate(null);
 		} catch (error) {
 			console.error('Error saving template:', error);
-			alert(`Failed to ${editingTemplate ? 'update' : 'create'} template. Please try again.`);
+			showWorkoutError(error, `${isEditing ? 'update' : 'create'} template`, showError);
 		}
 	};
 
@@ -218,55 +189,27 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		}
 
 		try {
-			const token = localStorage.getItem('token');
-			const response = await fetch(`http://localhost:5000/api/workouts/template/${templateId}`, {
-				method: 'DELETE',
-				headers: {
-					'Authorization': `Bearer ${token}`
-				}
-			});
-			
-			if (response.ok) {
-				setTemplates(prev => prev.filter(t => t._id !== templateId));
-				alert('Template deleted successfully!');
-			} else {
-				const error = await response.json();
-				alert('Failed to delete template: ' + (error.error || 'Unknown error'));
-			}
+			await api.delete(`${API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATE}/${templateId}`);
+			setTemplates(prev => prev.filter(t => t._id !== templateId));
+			showSuccess('Template deleted successfully!');
 		} catch (error) {
-			console.error('Error deleting template:', error);
-			alert('Failed to delete template. Please try again.');
+			showWorkoutError(error, 'delete template', showError);
 		}
 	};
 
 	// Handle starting workout from template
 	const handleStartWorkoutFromTemplate = async (template) => {
 		try {
-			const token = localStorage.getItem('token');
-			const response = await fetch('http://localhost:5000/api/workouts/session', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`
-				},
-				body: JSON.stringify({
-					workoutTemplateId: template._id
-				})
+			const session = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_SESSION, {
+				workoutTemplateId: template._id
 			});
-
-			if (response.ok) {
-				const session = await response.json();
-				// Navigate to workout session (assuming this is handled by parent component)
-				if (onStartWorkout) {
-					onStartWorkout(session);
-				}
-			} else {
-				const error = await response.json();
-				alert('Failed to start workout: ' + (error.error || 'Unknown error'));
+			
+			// Navigate to workout session (assuming this is handled by parent component)
+			if (onStartWorkout) {
+				onStartWorkout(session);
 			}
 		} catch (error) {
-			console.error('Error starting workout:', error);
-			alert('Failed to start workout. Please try again.');
+			showWorkoutError(error, 'workout start from template', showError);
 		}
 	};
 	
@@ -327,6 +270,52 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 							👤 My Progress
 						</button>
 					)}
+				</div>
+			</div>
+
+			{/* Website Introduction */}
+			<div className="website-introduction">
+				<div className="intro-content">
+					<div className="intro-header">
+						<div className="intro-icon">💪</div>
+						<h3>Welcome to Your Fitness Journey</h3>
+						<p className="intro-tagline">Professional Workout Tracking & Template Management</p>
+					</div>
+					
+					<div className="intro-mission">
+						<h4>🎯 Our Mission</h4>
+						<p>
+							We're dedicated to helping you achieve your fitness goals through intelligent workout tracking, 
+							personalized templates, and comprehensive exercise library. Whether you're a beginner 
+							starting your fitness journey or an experienced athlete looking to optimize performance, 
+							our platform provides the tools you need to succeed.
+						</p>
+					</div>
+					
+					<div className="intro-features">
+						<div className="feature-card">
+							<div className="feature-icon">🏋️</div>
+							<h5>Smart Workouts</h5>
+							<p>Track every set, rep, and personal record with precision</p>
+						</div>
+						<div className="feature-card">
+							<div className="feature-icon">📝</div>
+							<h5>Custom Templates</h5>
+							<p>Create and save personalized workout routines for any fitness goal</p>
+						</div>
+						<div className="feature-card">
+							<div className="feature-icon">📊</div>
+							<h5>Progress Analytics</h5>
+							<p>Monitor your improvement with detailed performance insights</p>
+						</div>
+					</div>
+					
+					<div className="intro-call-to-action">
+						<p>
+							<strong>Ready to transform your fitness?</strong> Start by browsing our exercise library 
+							or create your first custom workout template. Your journey to better health begins here!
+						</p>
+					</div>
 				</div>
 			</div>
 
@@ -567,7 +556,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 												setShowWorkoutStarter(false);
 											} catch (error) {
 												console.error('Error starting workout:', error);
-												alert('Failed to start workout. Please try again.');
+												showWorkoutError(error, 'quick workout start', showError);
 											}
 										}}
 										className="btn btn-primary"
@@ -595,7 +584,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 																setShowWorkoutStarter(false);
 															} catch (error) {
 																console.error('Error starting workout from template:', error);
-																alert('Failed to start workout from template. Please try again.');
+																showWorkoutError(error, 'template workout start', showError);
 															}
 														}}
 														className="btn btn-secondary btn-small"

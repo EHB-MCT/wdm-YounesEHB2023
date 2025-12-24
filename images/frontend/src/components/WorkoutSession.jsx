@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import trackEvent, { trackWorkoutSession, trackExerciseComplete } from "../utils/trackEvent";
+import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
+import { API_CONFIG, api } from "../utils/api.js";
 
 export default function WorkoutSession({ session, onSessionUpdate, onComplete, onAbandon, onBack }) {
+	const { showError, showSuccess, showWarning } = useNotifications();
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 	const [currentSet, setCurrentSet] = useState(1);
 	const [isResting, setIsResting] = useState(false);
@@ -78,13 +81,13 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 	
 	const logSet = async (reps, weight) => {
 		if (!currentExercise || !reps || !weight) {
-			alert("Please enter both reps and weight");
+			showWarning("Please enter both reps and weight");
 			return;
 		}
 		
 		if (!session || !session._id) {
 			console.error('No session or session ID available');
-			alert('Workout session not available. Please restart workout.');
+			showError('Workout session not available. Please restart workout.');
 			return;
 		}
 		
@@ -176,7 +179,7 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			}
 		} catch (error) {
 			console.error('Error logging set:', error);
-			alert('Error logging set. Please try again.');
+			showWorkoutError(error, 'log set', showError);
 		}
 	};
 	
@@ -214,7 +217,7 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 	const completeWorkout = async () => {
 		if (!session || !session._id) {
 			console.error('No session or session ID available for completion');
-			alert('Workout session not available. Please restart workout.');
+			showError('Workout session not available. Please restart workout.');
 			return;
 		}
 		
@@ -227,32 +230,17 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 				totalExercises: session.exercises.length
 			});
 			
-			const response = await fetch(`http://localhost:5000/api/workouts/session/${session._id}/complete`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${localStorage.getItem('token')}`
-				},
-				body: JSON.stringify({
-					notes: '',
-					rating: null,
-					felt: null
-				})
+			const data = await api.post(`${API_CONFIG.ENDPOINTS.WORKOUT_SESSION}/${session._id}/complete`, {
+				notes: '',
+				rating: null,
+				felt: null
 			});
 			
-			const data = await response.json();
-			
 			console.log('Complete workout response:', data);
-			
-			if (response.ok) {
-				onComplete(data);
-			} else {
-				console.error('Complete workout error:', data);
-				throw new Error(data.error || 'Failed to complete workout');
-			}
+			onComplete(data);
 		} catch (error) {
 			console.error('Error completing workout:', error);
-			alert('Error completing workout. Please try again.');
+			showWorkoutError(error, 'complete workout', showError);
 		}
 	};
 	
@@ -261,7 +249,7 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 		
 		if (!session || !session._id) {
 			console.error('No session or session ID available for abandon');
-			alert('Workout session not available. Please restart workout.');
+			showError('Workout session not available. Please restart workout.');
 			return;
 		}
 		
@@ -276,30 +264,15 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 				currentSet
 			});
 			
-			const response = await fetch(`http://localhost:5000/api/workouts/session/${session._id}/abandon`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${localStorage.getItem('token')}`
-				},
-				body: JSON.stringify({
-					notes: 'Workout abandoned during session'
-				})
+			const data = await api.post(`${API_CONFIG.ENDPOINTS.WORKOUT_SESSION}/${session._id}/abandon`, {
+				notes: 'Workout abandoned during session'
 			});
 			
-			const data = await response.json();
-			
 			console.log('Abandon workout response:', data);
-			
-			if (response.ok) {
-				onAbandon(data);
-			} else {
-				console.error('Abandon workout error:', data);
-				throw new Error(data.error || 'Failed to abandon workout');
-			}
+			onAbandon(data);
 		} catch (error) {
 			console.error('Error abandoning workout:', error);
-			alert('Error abandoning workout. Please try again.');
+			showWorkoutError(error, 'abandon workout', showError);
 		}
 	};
 	

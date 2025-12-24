@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import exercisesData from "./gym_exercises.json";
 import trackEvent from "../utils/trackEvent";
+import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
+import { API_CONFIG, api } from "../utils/api.js";
 
 // Custom styles
 const customStyles = `
@@ -373,7 +375,124 @@ const customStyles = `
 		font-size: 0.9em;
 		margin-bottom: 15px;
 	}
-`;
+	.template-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 20px;
+	}
+	.template-card {
+		border: 1px solid #e9ecef;
+		border-radius: 12px;
+		padding: 20px;
+		background: white;
+		transition: all 0.3s ease;
+	}
+	.template-card:hover {
+		box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+		transform: translateY(-2px);
+	}
+	.template-card.loading {
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	.template-header {
+		margin-bottom: 15px;
+	}
+	.template-info h3 {
+		margin: 0 0 8px 0;
+		color: #212529;
+		font-size: 1.1em;
+	}
+	.template-meta {
+		display: flex;
+		gap: 8px;
+		margin-bottom: 10px;
+	}
+	.meta-badge {
+		background-color: #e9ecef;
+		color: #495057;
+		padding: 3px 8px;
+		border-radius: 12px;
+		font-size: 0.8em;
+	}
+	.meta-badge.category {
+		background-color: #007bff;
+		color: white;
+	}
+	.template-description {
+		color: #6c757d;
+		font-size: 0.9em;
+		margin-bottom: 15px;
+		line-height: 1.4;
+	}
+	.template-exercises {
+		margin-bottom: 15px;
+	}
+	.exercise-preview {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+	.mini-exercise {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 6px 8px;
+		background-color: #f8f9fa;
+		border-radius: 6px;
+		font-size: 0.85em;
+	}
+	.exercise-name {
+		font-weight: 500;
+		color: #495057;
+	}
+	.exercise-details {
+		color: #6c757d;
+		font-weight: 600;
+	}
+	.more-exercises {
+		text-align: center;
+		color: #6c757d;
+		font-style: italic;
+		font-size: 0.85em;
+		padding: 8px;
+	}
+	.template-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+		margin-bottom: 15px;
+	}
+	.template-actions {
+		display: flex;
+		justify-content: flex-end;
+	}
+	.empty-state {
+		text-align: center;
+		padding: 40px;
+		color: #6c757d;
+	}
+	.empty-icon {
+		font-size: 3em;
+		margin-bottom: 15px;
+		opacity: 0.5;
+	}
+	.empty-state h3 {
+		margin: 0 0 10px 0;
+		color: #495057;
+	}
+	.empty-state p {
+		margin: 0 0 20px 0;
+		line-height: 1.5;
+	}
+	.loading-spinner {
+		display: inline-block;
+		padding: 10px 20px;
+		background-color: #f8f9fa;
+		border-radius: 8px;
+		color: #6c757d;
+	}
+	`;
 
 // Pre-made workout templates based on common fitness goals
 const PRESET_WORKOUTS = [
@@ -459,6 +578,7 @@ const PRESET_WORKOUTS = [
 ];
 
 export default function AllInOneWorkout({ onStartWorkout, onBack }) {
+	const { showError, showSuccess, showWarning } = useNotifications();
 	const [activeTab, setActiveTab] = useState('presets');
 	const [selectedPreset, setSelectedPreset] = useState(null);
 	const [selectedExercises, setSelectedExercises] = useState([]);
@@ -477,6 +597,8 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 		targetWeight: 0,
 		restTime: 60
 	});
+	const [userTemplates, setUserTemplates] = useState([]);
+	const [templatesLoading, setTemplatesLoading] = useState(false);
 
 	const muscleGroups = [...new Set(exercisesData.map(ex => ex.muscleGroup))];
 	
@@ -485,6 +607,26 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 		const matchesCategory = selectedCategory === "all" || exercise.muscleGroup === selectedCategory;
 		return matchesSearch && matchesCategory;
 	});
+
+	// Load user templates when templates tab is selected
+	useEffect(() => {
+		if (activeTab === 'templates') {
+			fetchUserTemplates();
+		}
+	}, [activeTab]);
+
+	const fetchUserTemplates = async () => {
+		setTemplatesLoading(true);
+		try {
+			const data = await api.get(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATES);
+			setUserTemplates(data.templates || []);
+		} catch (error) {
+			console.error('Error fetching user templates:', error);
+			showError('Failed to load templates');
+		} finally {
+			setTemplatesLoading(false);
+		}
+	};
 
 	// Inject custom styles
 	useEffect(() => {
@@ -501,7 +643,7 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 
 	const addCustomExercise = () => {
 		if (!customExercise.name.trim()) {
-			alert('Please enter an exercise name');
+			showError('Please enter an exercise name');
 			return;
 		}
 
@@ -534,10 +676,11 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 	};
 
 	const addExercise = (exercise) => {
-		const isAlreadyAdded = selectedExercises.some(ex => ex.exerciseId === exercise.id);
+		// Fix ID type mismatch - ensure consistent string comparison
+		const isAlreadyAdded = selectedExercises.some(ex => String(ex.exerciseId) === String(exercise.id));
 		
 		if (isAlreadyAdded) {
-			alert('Exercise already added to your workout!');
+			showWarning('Exercise already added to your workout!');
 			return;
 		}
 
@@ -569,37 +712,45 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 		setSelectedExercises(updatedExercises);
 	};
 
+	const startTemplateWorkout = async (template) => {
+		setIsStarting(true);
+		try {
+			const data = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_SESSION, {
+				workoutTemplateId: template._id
+			});
+			
+			trackEvent("template_workout_started", {
+				templateName: template.name,
+				templateCategory: template.category,
+				exerciseCount: template.exercises.length
+			});
+			onStartWorkout(data);
+		} catch (error) {
+			console.error('Error starting template workout:', error);
+			showWorkoutError(error, 'template workout', showError);
+		} finally {
+			setIsStarting(false);
+		}
+	};
+
 	const startPresetWorkout = async (preset) => {
 		setIsStarting(true);
 		try {
 			// Create workout session with preset exercises
-			const response = await fetch('http://localhost:5000/api/workouts/session', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${localStorage.getItem('token')}`
-				},
-				body: JSON.stringify({
-					templateId: null,
-					templateName: preset.name,
-					exercises: preset.exercises
-				})
+			const data = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_SESSION, {
+				templateId: null,
+				templateName: preset.name,
+				exercises: preset.exercises
 			});
 
-			const data = await response.json();
-			if (response.ok) {
-				trackEvent("preset_workout_started", {
-					presetId: preset.id,
-					presetName: preset.name,
-					exerciseCount: preset.exercises.length
-				});
-				onStartWorkout(data);
-			} else {
-				throw new Error(data.error || 'Failed to start workout');
-			}
+			trackEvent("preset_workout_started", {
+				presetName: preset.name,
+				exerciseCount: preset.exercises.length
+			});
+			onStartWorkout(data);
 		} catch (error) {
 			console.error('Error starting preset workout:', error);
-			alert('Error starting workout. Please try again.');
+			showWorkoutError(error, 'preset workout', showError);
 		} finally {
 			setIsStarting(false);
 		}
@@ -607,7 +758,7 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 
 	const startCustomWorkout = async () => {
 		if (selectedExercises.length === 0) {
-			alert("Please add at least one exercise");
+			showWarning("Please add at least one exercise");
 			return;
 		}
 
@@ -615,43 +766,31 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 		setIsStarting(true);
 
 		try {
-			const response = await fetch('http://localhost:5000/api/workouts/session', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${localStorage.getItem('token')}`
-				},
-				body: JSON.stringify({
-					templateId: null,
-					templateName: workoutName,
-					exercises: selectedExercises.map(ex => ({
-						exerciseId: ex.exerciseId,
-						exerciseName: ex.exerciseName,
-						targetSets: ex.targetSets,
-						targetReps: ex.targetReps,
-						targetWeight: ex.targetWeight,
-						restTime: ex.restTime,
-						equipment: ex.equipment,
-						difficulty: ex.difficulty,
-						video: ex.video,
-						instructions: ex.instructions
-					}))
-				})
+			const data = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_SESSION, {
+				templateId: null,
+				templateName: workoutName,
+				exercises: selectedExercises.map(ex => ({
+					exerciseId: ex.exerciseId,
+					exerciseName: ex.exerciseName,
+					targetSets: ex.targetSets,
+					targetReps: ex.targetReps,
+					targetWeight: ex.targetWeight,
+					restTime: ex.restTime,
+					equipment: ex.equipment,
+					difficulty: ex.difficulty,
+					video: ex.video,
+					instructions: ex.instructions
+				}))
 			});
 
-			const data = await response.json();
-			if (response.ok) {
-				trackEvent("custom_workout_started", {
-					workoutName,
-					exerciseCount: selectedExercises.length
-				});
-				onStartWorkout(data);
-			} else {
-				throw new Error(data.error || 'Failed to start workout');
-			}
+			trackEvent("custom_workout_started", {
+				workoutName,
+				exerciseCount: selectedExercises.length
+			});
+			onStartWorkout(data);
 		} catch (error) {
 			console.error('Error starting custom workout:', error);
-			alert('Error starting workout. Please try again.');
+			showWorkoutError(error, 'custom workout', showError);
 		} finally {
 			setIsStarting(false);
 		}
@@ -1030,7 +1169,7 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 					
 					<div className="exercise-grid">
 						{filteredExercises.map(exercise => {
-							const isAdded = selectedExercises.some(ex => ex.exerciseId === exercise.id);
+							const isAdded = selectedExercises.some(ex => String(ex.exerciseId) === String(exercise.id));
 							return (
 								<div
 									key={exercise.id}
@@ -1072,14 +1211,92 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 			<div className={`tab-content ${activeTab === 'templates' ? 'active' : ''}`}>
 				<div className="card">
 					<div className="card-header">
-						<h2>My Workout Templates</h2>
-						<span className="exercise-count">Coming soon...</span>
+						<div className="header-left">
+							<h2>My Workout Templates</h2>
+							<span className="exercise-count">{userTemplates.length} templates</span>
+						</div>
+						<button 
+							onClick={fetchUserTemplates}
+							className="btn btn-secondary btn-small"
+							disabled={templatesLoading}
+						>
+							{templatesLoading ? 'Loading...' : '🔄 Refresh'}
+						</button>
 					</div>
+					
 					<div className="card-content">
-						<p style={{ textAlign: 'center', color: '#6c757d', padding: '40px' }}>
-							Your saved workout templates will appear here.<br/>
-							You can create templates from your custom workouts for quick access.
-						</p>
+						{templatesLoading ? (
+							<div style={{ textAlign: 'center', padding: '40px' }}>
+								<div className="loading-spinner">Loading templates...</div>
+							</div>
+						) : userTemplates.length === 0 ? (
+							<div className="empty-state">
+								<div className="empty-icon">📝</div>
+								<h3>No templates yet</h3>
+								<p>Create your first workout template from the "Build Custom" tab to save your favorite workout combinations!</p>
+								<button 
+									onClick={() => setActiveTab('custom')}
+									className="btn btn-primary"
+								>
+									Create First Template
+								</button>
+							</div>
+						) : (
+							<div className="template-grid">
+								{userTemplates.map(template => (
+									<div 
+										key={template._id}
+										className={`template-card ${isStarting ? 'loading' : ''}`}
+									>
+										<div className="template-header">
+											<div className="template-info">
+												<h3>{template.name}</h3>
+												<div className="template-meta">
+													<span className="meta-badge category">{template.category}</span>
+													<span className="meta-badge">{template.exercises.length} exercises</span>
+												</div>
+											</div>
+										</div>
+										
+										{template.description && (
+											<p className="template-description">{template.description}</p>
+										)}
+										
+										<div className="template-exercises">
+											<div className="exercise-preview">
+												{template.exercises.slice(0, 3).map((ex, idx) => (
+													<div key={idx} className="mini-exercise">
+														<span className="exercise-name">{ex.exerciseName}</span>
+														<span className="exercise-details">{ex.targetSets}× {ex.targetReps}</span>
+													</div>
+												))}
+												{template.exercises.length > 3 && (
+													<div className="more-exercises">
+														+{template.exercises.length - 3} more exercises
+													</div>
+												)}
+											</div>
+										</div>
+										
+										<div className="template-tags">
+											{template.tags && template.tags.map((tag, idx) => (
+												<span key={idx} className="tag">{tag}</span>
+											))}
+										</div>
+										
+										<div className="template-actions">
+											<button 
+												onClick={() => startTemplateWorkout(template)}
+												className="btn btn-primary"
+												disabled={isStarting}
+											>
+												{isStarting ? 'Starting...' : '🏃 Start Workout'}
+											</button>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
