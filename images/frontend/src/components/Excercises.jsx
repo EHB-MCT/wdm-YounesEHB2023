@@ -5,7 +5,7 @@ import Filter from "./Filter";
 import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
 import trackEvent from "../utils/trackEvent";
 
-export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate }) {
+export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate, onQuickWorkout }) {
 	const [exercises, setExercises] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filters, setFilters] = useState({
@@ -22,6 +22,72 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	const [showWorkoutStarter, setShowWorkoutStarter] = useState(false);
 	const [expandedInstructions, setExpandedInstructions] = useState(new Set());
 	
+	// Hover tracking state
+	const [hoverTimers, setHoverTimers] = useState({});
+	const [instructionViewTimers, setInstructionViewTimers] = useState({});
+	
+
+// Hover tracking functions
+	const handleMouseEnter = (exerciseId) => {
+		const startTime = Date.now();
+		console.log(`Hover started on exercise: ${exerciseId}`);
+		setHoverTimers(prev => ({ ...prev, [exerciseId]: startTime }));
+	};
+
+	const handleMouseLeave = (exerciseId) => {
+		const startTime = hoverTimers[exerciseId];
+		if (startTime) {
+			const hoverDuration = Date.now() - startTime;
+			console.log(`Hover ended on exercise: ${exerciseId}, duration: ${hoverDuration}ms`);
+			trackEvent("exercise_hover", {
+				exerciseId,
+				duration: hoverDuration,
+			}).catch(error => {
+				console.error('Failed to track exercise hover:', error);
+			});
+			setHoverTimers(prev => {
+				const newTimers = { ...prev };
+				delete newTimers[exerciseId];
+				return newTimers;
+			});
+		}
+	};
+
+	const handleExerciseClick = (exerciseId, exerciseName) => {
+		console.log(`Exercise clicked: ${exerciseName} (${exerciseId})`);
+		trackEvent("exercise_click", {
+			exerciseId,
+			exerciseName,
+		}).catch(error => {
+			console.error('Failed to track exercise click:', error);
+		});
+	};
+
+	const handleInstructionsToggle = (exerciseId, isOpening) => {
+		if (isOpening) {
+			// Track when instructions are opened
+			const startTime = Date.now();
+			setInstructionViewTimers(prev => ({ ...prev, [exerciseId]: startTime }));
+			trackEvent("exercise_instructions_opened", {
+				exerciseId,
+			});
+		} else {
+			// Track when instructions are closed and calculate view duration
+			const startTime = instructionViewTimers[exerciseId];
+			if (startTime) {
+				const viewDuration = Date.now() - startTime;
+				trackEvent("exercise_instructions_closed", {
+					exerciseId,
+					duration: viewDuration,
+				});
+				setInstructionViewTimers(prev => {
+					const newTimers = { ...prev };
+					delete newTimers[exerciseId];
+					return newTimers;
+				});
+			}
+		}
+	};
 
 // Load exercises and user data
 	useEffect(() => {
@@ -222,6 +288,17 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 						</button>
 					)}
 					
+					{onQuickWorkout && (
+						<button 
+							onClick={() => {
+								onQuickWorkout();
+							}}
+							className="btn btn-primary quick-workout-btn"
+						>
+							🏋️ Workout Center
+						</button>
+					)}
+					
 					{onCreateTemplate && (
 						<button 
 							onClick={() => {
@@ -341,6 +418,9 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 							<div
 								key={ex.id}
 								className={`exercise-card enhanced ${isInTemplates ? 'in-templates' : ''}`}
+								onMouseEnter={() => handleMouseEnter(ex.id)}
+								onMouseLeave={() => handleMouseLeave(ex.id)}
+								onClick={() => handleExerciseClick(ex.id, ex.name)}
 							>
 								{/* Exercise Header with Indicators */}
 								<div className="exercise-card-header">
@@ -407,12 +487,17 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 											onClick={(e) => {
 												e.stopPropagation();
 												const newExpanded = new Set(expandedInstructions);
-												if (newExpanded.has(ex.id)) {
-													newExpanded.delete(ex.id);
-												} else {
+												const isCurrentlyExpanded = newExpanded.has(ex.id);
+												const isExpanding = !isCurrentlyExpanded;
+												
+												if (isExpanding) {
 													newExpanded.add(ex.id);
+												} else {
+													newExpanded.delete(ex.id);
 												}
 												setExpandedInstructions(newExpanded);
+												
+												handleInstructionsToggle(ex.id, isExpanding);
 											}}
 											title="Click to view exercise instructions and form"
 										>

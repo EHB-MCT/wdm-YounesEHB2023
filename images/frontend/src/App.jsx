@@ -7,6 +7,8 @@ import WorkoutSession from "./components/WorkoutSession.jsx";
 import UserProfile from "./components/UserProfile.jsx";
 import WorkoutHistory from "./components/WorkoutHistory.jsx";
 import WorkoutTemplateBuilder from "./components/WorkoutTemplateBuilder.jsx";
+import QuickWorkoutStarter from "./components/QuickWorkoutStarter.jsx";
+import AllInOneWorkout from "./components/AllInOneWorkout.jsx";
 
 function App() {
 	const [token, setToken] = useState(localStorage.getItem("token"));
@@ -128,6 +130,10 @@ function App() {
 		setEditingTemplate(null);
 	};
 
+	const handleQuickWorkout = () => {
+		setCurrentView('all-in-one-workout');
+	};
+
 	const handleSessionUpdate = (updatedSession) => {
 		setActiveSession(updatedSession);
 	};
@@ -183,6 +189,7 @@ function App() {
 								onViewHistory={() => setCurrentView('history')}
 								onCreateTemplate={handleCreateTemplate}
 								onEditTemplate={handleEditTemplate}
+								onQuickWorkout={handleQuickWorkout}
 							/>
 						)}
 						
@@ -213,6 +220,16 @@ function App() {
 								onSave={handleTemplateSave}
 								onCancel={handleTemplateCancel}
 								initialTemplate={editingTemplate}
+							/>
+						)}
+						
+						{currentView === 'all-in-one-workout' && (
+							<AllInOneWorkout
+								onStartWorkout={(session) => {
+									setActiveSession(session);
+									setCurrentView('workout');
+								}}
+								onBack={() => setCurrentView('exercises')}
 							/>
 						)}
 					</main>

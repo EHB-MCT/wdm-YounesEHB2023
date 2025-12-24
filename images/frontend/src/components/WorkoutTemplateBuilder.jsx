@@ -17,6 +17,8 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [isSaving, setIsSaving] = useState(false);
 	const [expandedExerciseDetails, setExpandedExerciseDetails] = useState(new Set());
+	const [instructionViewTimers, setInstructionViewTimers] = useState({});
+	const [hoverTimers, setHoverTimers] = useState({});
 	
 	const muscleGroups = [...new Set(exercisesData.map(ex => ex.muscleGroup))];
 	const categories = ["Upper Body", "Lower Body", "Full Body", "Core", "Cardio", "Custom"];
@@ -28,6 +30,20 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	});
 	
 	const addExerciseToTemplate = (exercise) => {
+		// Check if exercise is already added (using string comparison to handle type issues)
+		const exerciseIdStr = String(exercise.id);
+		const isAlreadyAdded = selectedExercises.some(id => String(id) === exerciseIdStr);
+		
+		if (isAlreadyAdded) {
+			console.log('Exercise already added:', exercise.name);
+			return;
+		}
+
+		console.log('=== ADDING EXERCISE ===');
+		console.log('Exercise data:', exercise);
+		console.log('Current template exercises count:', template.exercises.length);
+		console.log('Selected exercises before:', selectedExercises);
+
 		const newExercise = {
 			exerciseId: exercise.id,
 			exerciseName: exercise.name,
@@ -43,9 +59,22 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 			instructions: exercise.instructions
 		};
 		
-		const updatedExercises = [...template.exercises, newExercise];
-		setTemplate(prev => ({ ...prev, exercises: updatedExercises }));
-		setSelectedExercises([...selectedExercises, exercise.id]);
+		// Update both states with proper state updates
+		setSelectedExercises(prev => {
+			const newSelected = [...prev, exercise.id];
+			console.log('Selected exercises after:', newSelected);
+			return newSelected;
+		});
+		
+		setTemplate(prev => {
+			const newTemplate = { 
+				...prev, 
+				exercises: [...prev.exercises, newExercise] 
+			};
+			console.log('New template state:', newTemplate);
+			console.log('New exercises count:', newTemplate.exercises.length);
+			return newTemplate;
+		});
 		
 		trackEvent("template_exercise_added", {
 			exerciseId: exercise.id,
@@ -53,22 +82,77 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 			muscleGroup: exercise.muscleGroup,
 			templateName: template.name || "New Template"
 		});
+
+		// Provide visual feedback
+		console.log(`✓ Successfully added exercise: ${exercise.name} to template`);
+	};
+
+	// Template builder hover tracking
+	const handleTemplateExerciseMouseEnter = (exerciseId) => {
+		const startTime = Date.now();
+		console.log(`Template hover started on exercise: ${exerciseId}`);
+		setHoverTimers(prev => ({ ...prev, [exerciseId]: startTime }));
+	};
+
+	const handleTemplateExerciseMouseLeave = (exerciseId) => {
+		const startTime = hoverTimers[exerciseId];
+		if (startTime) {
+			const hoverDuration = Date.now() - startTime;
+			console.log(`Template hover ended on exercise: ${exerciseId}, duration: ${hoverDuration}ms`);
+			trackEvent("template_exercise_hover", {
+				exerciseId,
+				duration: hoverDuration,
+				templateName: template.name || "New Template"
+			}).catch(error => {
+				console.error('Failed to track template exercise hover:', error);
+			});
+			setHoverTimers(prev => {
+				const newTimers = { ...prev };
+				delete newTimers[exerciseId];
+				return newTimers;
+			});
+		}
 	};
 
 	const toggleExerciseDetails = (exerciseId) => {
 		const newExpanded = new Set(expandedExerciseDetails);
-		if (newExpanded.has(exerciseId)) {
-			newExpanded.delete(exerciseId);
-		} else {
+		const isCurrentlyExpanded = newExpanded.has(exerciseId);
+		const isExpanding = !isCurrentlyExpanded;
+		
+		if (isExpanding) {
 			newExpanded.add(exerciseId);
+			// Track when instructions are opened
+			const startTime = Date.now();
+			setInstructionViewTimers(prev => ({ ...prev, [exerciseId]: startTime }));
+			trackEvent("template_instructions_opened", {
+				exerciseId,
+				templateName: template.name || "New Template"
+			});
+		} else {
+			newExpanded.delete(exerciseId);
+			// Track when instructions are closed and calculate view duration
+			const startTime = instructionViewTimers[exerciseId];
+			if (startTime) {
+				const viewDuration = Date.now() - startTime;
+				trackEvent("template_instructions_closed", {
+					exerciseId,
+					duration: viewDuration,
+					templateName: template.name || "New Template"
+				});
+				setInstructionViewTimers(prev => {
+					const newTimers = { ...prev };
+					delete newTimers[exerciseId];
+					return newTimers;
+				});
+			}
 		}
 		setExpandedExerciseDetails(newExpanded);
 	};
 	
 	const removeExerciseFromTemplate = (exerciseId) => {
-		const updatedExercises = template.exercises.filter(ex => ex.exerciseId !== exerciseId);
+		const updatedExercises = template.exercises.filter(ex => String(ex.exerciseId) !== String(exerciseId));
 		setTemplate(prev => ({ ...prev, exercises: updatedExercises }));
-		setSelectedExercises(selectedExercises.filter(id => id !== exerciseId));
+		setSelectedExercises(selectedExercises.filter(id => String(id) !== String(exerciseId)));
 		
 		trackEvent("template_exercise_removed", {
 			exerciseId,
@@ -182,6 +266,8 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 			setIsSaving(false);
 		}
 	};
+
+
 	
 	return (
 		<div className="workout-template-builder">
@@ -404,17 +490,6 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 					</div>
 					
 					<div className="library-filters">
-						<div className="search-box">
-							<input
-								type="text"
-								placeholder="Search exercises by name..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="search-input"
-							/>
-							<div className="search-icon">🔍</div>
-						</div>
-						
 						<select
 							value={selectedCategory}
 							onChange={(e) => setSelectedCategory(e.target.value)}
@@ -425,16 +500,29 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 								<option key={group} value={group}>{group}</option>
 							))}
 						</select>
+						
+						<div className="search-box">
+							<input
+								type="text"
+								placeholder="Search exercises by name..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="search-input"
+							/>
+							<div className="search-icon">🔍</div>
+						</div>
 					</div>
 					
 					<div className="exercise-grid">
 						{filteredExercises.map(exercise => {
-							const isAdded = selectedExercises.includes(exercise.id);
+							const isAdded = selectedExercises.some(id => String(id) === String(exercise.id));
 							const isExpanded = expandedExerciseDetails.has(exercise.id);
 							return (
 								<div
 									key={exercise.id}
 									className={`exercise-tile ${isAdded ? 'added' : ''} ${isExpanded ? 'expanded' : ''}`}
+									onMouseEnter={() => handleTemplateExerciseMouseEnter(exercise.id)}
+									onMouseLeave={() => handleTemplateExerciseMouseLeave(exercise.id)}
 								>
 									<div className="exercise-tile-header">
 										<div className="exercise-tile-content">
@@ -451,7 +539,10 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 										<div className="exercise-tile-actions">
 											<button 
 												className="btn-icon expand-btn"
-												onClick={() => toggleExerciseDetails(exercise.id)}
+												onClick={(e) => {
+													e.stopPropagation();
+													toggleExerciseDetails(exercise.id);
+												}}
 												title={isExpanded ? "Hide details" : "Show details"}
 												aria-expanded={isExpanded}
 											>
@@ -460,7 +551,14 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 											{!isAdded ? (
 												<button 
 													className="btn btn-add"
-													onClick={() => addExerciseToTemplate(exercise)}
+													onClick={(e) => {
+														e.stopPropagation();
+														e.preventDefault();
+														console.log('=== BUTTON CLICKED ===');
+														console.log('Adding exercise:', exercise.name, 'ID:', exercise.id);
+														console.log('Exercise object:', exercise);
+														addExerciseToTemplate(exercise);
+													}}
 												>
 													+ Add
 												</button>
