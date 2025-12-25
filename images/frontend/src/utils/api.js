@@ -90,13 +90,23 @@ export const apiRequest = async (endpoint, options = {}) => {
     }
     
   } catch (error) {
-    // Handle network errors, timeouts, etc.
+      // Handle network errors, timeouts, etc.
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       const networkError = new Error('Network error - unable to connect to server');
       networkError.isNetworkError = true;
       networkError.originalError = error;
       console.error(`🔌 Network Error: ${options.method || 'GET'} ${url}`, networkError);
       throw networkError;
+    }
+    
+    // Handle JWT expired errors specifically
+    if (error.status === 401 || (error.message && error.message.includes('jwt expired'))) {
+      const tokenError = new Error('Session expired');
+      tokenError.isTokenExpired = true;
+      tokenError.code = 'TOKEN_EXPIRED';
+      tokenError.shouldLogout = true;
+      console.error(`🔑 Token Expired Error: ${options.method || 'GET'} ${url}`, tokenError);
+      throw tokenError;
     }
     
     console.error(`💥 Request Error: ${options.method || 'GET'} ${url}`, error);
@@ -135,6 +145,30 @@ export const api = {
       ...options
     });
   }
+};
+
+// Handle authentication errors globally
+export const handleAuthError = (error) => {
+  if (error.isTokenExpired || error.code === 'TOKEN_EXPIRED') {
+    // Clear expired token
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAdmin');
+    
+    // Show user-friendly message
+    console.log('🔑 Token expired, clearing authentication');
+    
+    // You can also show a modal notification here if you have a global notification system
+    if (typeof window !== 'undefined') {
+      window.alert('Your session has expired. Please log in again.');
+    }
+    
+    // Force page reload to go to login
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }
+  
+  return error.isTokenExpired;
 };
 
 export default api;

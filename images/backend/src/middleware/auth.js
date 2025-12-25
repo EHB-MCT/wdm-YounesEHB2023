@@ -21,6 +21,30 @@ export default async function auth(req, res, next) {
 		next();
 	} catch (err) {
 		console.error("Auth middleware error:", err.message || err);
-		return res.status(401).json({ error: "Unauthorized" });
+		
+		// Check if token has expired specifically
+		if (err.name === 'TokenExpiredError' || err.message === 'jwt expired') {
+			return res.status(401).json({ 
+				error: "jwt expired",
+				message: "Your session has expired. Please log in again.",
+				code: "TOKEN_EXPIRED"
+			});
+		}
+		
+		// Handle other JWT errors
+		if (err.name === 'JsonWebTokenError') {
+			return res.status(401).json({ 
+				error: "invalid_token",
+				message: "Invalid authentication token. Please log in again.",
+				code: "INVALID_TOKEN"
+			});
+		}
+		
+		// Generic authentication error
+		return res.status(401).json({ 
+			error: "authentication_failed",
+			message: "Authentication failed. Please log in again.",
+			code: "AUTH_FAILED"
+		});
 	}
 }

@@ -18,6 +18,11 @@ export class TokenService {
   }
 
   static verifyToken(token) {
-    return jwt.verify(token, process.env.JWT_SECRET || 'supersecret');
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET || 'supersecret');
+    } catch (error) {
+      // Re-throw the error to be handled by middleware
+      throw error;
+    }
   }
 }

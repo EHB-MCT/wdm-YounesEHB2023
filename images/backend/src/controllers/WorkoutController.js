@@ -218,6 +218,7 @@ export class WorkoutController {
   
   async startWorkoutSession(req, res, next) {
     try {
+      console.log('Start workout session - request body:', JSON.stringify(req.body, null, 2));
       const { workoutTemplateId, customName, customCategory } = req.body;
       const userId = req.user._id;
       
@@ -253,19 +254,23 @@ export class WorkoutController {
         
         // Allow empty custom workouts - users can add exercises during the session
         
-        exercises = req.body.exercises.map((ex, index) => ({
-          exerciseId: ex.exerciseId,
-          exerciseName: ex.exerciseName,
-          muscleGroup: ex.muscleGroup,
-          targetSets: ex.targetSets || 3,
-          targetReps: ex.targetReps || "10",
-          targetWeight: ex.targetWeight || 0,
-          completedSets: [],
-          exerciseCompleted: false,
-          startTime: null,
-          endTime: null,
-          order: index + 1
-        }));
+        console.log('Custom exercises received:', req.body.exercises);
+        exercises = req.body.exercises.map((ex, index) => {
+          console.log(`Processing exercise ${index}:`, JSON.stringify(ex, null, 2));
+          return {
+            exerciseId: ex.exerciseId,
+            exerciseName: ex.exerciseName,
+            muscleGroup: ex.muscleGroup,
+            targetSets: ex.targetSets || 3,
+            targetReps: ex.targetReps || "10",
+            targetWeight: ex.targetWeight || 0,
+            completedSets: [],
+            exerciseCompleted: false,
+            startTime: null,
+            endTime: null,
+            order: index + 1
+          };
+        });
       }
       
       const session = new WorkoutSession({

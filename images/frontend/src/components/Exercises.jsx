@@ -5,7 +5,7 @@ import Filter from "./Filter";
 import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
 import trackEvent from "../utils/trackEvent";
 import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
-import { API_CONFIG, api } from "../utils/api.js";
+import { API_CONFIG, api, handleAuthError } from "../utils/api.js";
 
 export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate, onQuickWorkout }) {
 	const { showError, showSuccess, showWarning } = useNotifications();
@@ -105,6 +105,10 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 			const data = await api.get(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATES);
 			setTemplates(data.templates || []);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error fetching templates:', error);
 		}
 	};
@@ -118,6 +122,10 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 			});
 			setPersonalRecords(recordsMap);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error fetching personal records:', error);
 		}
 	};
@@ -193,7 +201,11 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 			setTemplates(prev => prev.filter(t => t._id !== templateId));
 			showSuccess('Template deleted successfully!');
 		} catch (error) {
-			showWorkoutError(error, 'delete template', showError);
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
+			showWorkoutError(error, `${isEditing ? 'update' : 'create'} template`, showError);
 		}
 	};
 
@@ -209,6 +221,10 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 				onStartWorkout(session);
 			}
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			showWorkoutError(error, 'workout start from template', showError);
 		}
 	};
@@ -582,10 +598,13 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 															try {
 																handleStartWorkoutFromTemplate(template);
 																setShowWorkoutStarter(false);
-															} catch (error) {
-																console.error('Error starting workout from template:', error);
-																showWorkoutError(error, 'template workout start', showError);
-															}
+		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
+			showWorkoutError(error, `${editingTemplate ? 'update' : 'create'} template`, showError);
+		}
 														}}
 														className="btn btn-secondary btn-small"
 													>

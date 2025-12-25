@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import trackEvent, { trackWorkoutSession, trackExerciseComplete } from "../utils/trackEvent";
 import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
-import { API_CONFIG, api } from "../utils/api.js";
+import { API_CONFIG, api, handleAuthError } from "../utils/api.js";
 
 export default function WorkoutSession({ session, onSessionUpdate, onComplete, onAbandon, onBack }) {
 	const { showError, showSuccess, showWarning } = useNotifications();
@@ -178,6 +178,10 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 				throw new Error(data.error || 'Failed to log set');
 			}
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error logging set:', error);
 			showWorkoutError(error, 'log set', showError);
 		}
@@ -239,6 +243,10 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			console.log('Complete workout response:', data);
 			onComplete(data);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error completing workout:', error);
 			showWorkoutError(error, 'complete workout', showError);
 		}
@@ -271,6 +279,10 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 			console.log('Abandon workout response:', data);
 			onAbandon(data);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error abandoning workout:', error);
 			showWorkoutError(error, 'abandon workout', showError);
 		}

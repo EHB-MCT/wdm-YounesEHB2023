@@ -221,6 +221,23 @@ export default function QuickWorkoutStarter({ onStartWorkout, onBack }) {
 				exerciseCount: selectedExercises.length
 			});
 			
+			const exerciseData = selectedExercises.map(ex => ({
+				exerciseId: ex.exerciseId,
+				exerciseName: ex.exerciseName,
+				muscleGroup: ex.muscleGroup,
+				targetSets: ex.targetSets,
+				targetReps: ex.targetReps,
+				targetWeight: ex.targetWeight,
+				restTime: ex.restTime,
+				equipment: ex.equipment,
+				difficulty: ex.difficulty,
+				video: ex.video,
+				instructions: ex.instructions
+			}));
+			
+			console.log('Sending exercises data:', exerciseData);
+			console.log('Selected exercises before mapping:', selectedExercises);
+			
 			// Create a quick workout session
 			const response = await fetch('http://localhost:5000/api/workouts/session', {
 				method: 'POST',
@@ -231,18 +248,7 @@ export default function QuickWorkoutStarter({ onStartWorkout, onBack }) {
 				body: JSON.stringify({
 					templateId: null,
 					templateName: workoutName,
-					exercises: selectedExercises.map(ex => ({
-						exerciseId: ex.exerciseId,
-						exerciseName: ex.exerciseName,
-						targetSets: ex.targetSets,
-						targetReps: ex.targetReps,
-						targetWeight: ex.targetWeight,
-						restTime: ex.restTime,
-						equipment: ex.equipment,
-						difficulty: ex.difficulty,
-						video: ex.video,
-						instructions: ex.instructions
-					}))
+					exercises: exerciseData
 				})
 			});
 			

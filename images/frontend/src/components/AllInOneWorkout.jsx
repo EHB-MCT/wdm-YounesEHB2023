@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import exercisesData from "./gym_exercises.json";
 import trackEvent from "../utils/trackEvent";
 import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
-import { API_CONFIG, api } from "../utils/api.js";
+import { API_CONFIG, api, handleAuthError } from "../utils/api.js";
 
 // Custom styles
 const customStyles = `
@@ -621,6 +621,10 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 			const data = await api.get(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATES);
 			setUserTemplates(data.templates || []);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error fetching user templates:', error);
 			showError('Failed to load templates');
 		} finally {
@@ -749,6 +753,10 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 			});
 			onStartWorkout(data);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error starting preset workout:', error);
 			showWorkoutError(error, 'preset workout', showError);
 		} finally {
@@ -789,6 +797,10 @@ export default function AllInOneWorkout({ onStartWorkout, onBack }) {
 			});
 			onStartWorkout(data);
 		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
+			}
 			console.error('Error starting custom workout:', error);
 			showWorkoutError(error, 'custom workout', showError);
 		} finally {

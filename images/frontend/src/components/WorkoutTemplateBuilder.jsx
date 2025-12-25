@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import exercisesData from "./gym_exercises.json";
 import trackEvent from "../utils/trackEvent";
 import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
+import { handleAuthError } from "../utils/api.js";
 
 export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTemplate = null }) {
 	const { showError, showSuccess, showWarning } = useNotifications();
@@ -256,10 +257,14 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 				category: template.category,
 				exerciseCount: template.exercises.length
 			});
-			} catch (error) {
-				console.error('Error saving template:', error);
-				showWorkoutError(error, 'template save', showError);
+		} catch (error) {
+			// Handle authentication errors specifically
+			if (handleAuthError && handleAuthError(error)) {
+				return; // Don't show additional error message, function will handle logout
 			}
+			console.error('Error saving template:', error);
+			showWorkoutError(error, 'template save', showError);
+		}
 	};
 
 
