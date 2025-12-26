@@ -8,6 +8,7 @@ import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils
 import { API_CONFIG, api, handleAuthError } from "../utils/api.js";
 
 export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate, onQuickWorkout }) {
+	console.log('Exercises component mounting...');
 	const { showError, showSuccess, showWarning } = useNotifications();
 	const [exercises, setExercises] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -25,12 +26,62 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	const [showWorkoutStarter, setShowWorkoutStarter] = useState(false);
 	const [expandedInstructions, setExpandedInstructions] = useState(new Set());
 	
+	// Exercise selection and workout builder state
+	const [selectedExercises, setSelectedExercises] = useState([]);
+	const [showWorkoutBuilder, setShowWorkoutBuilder] = useState(false);
+	const [workoutConfig, setWorkoutConfig] = useState({
+		globalSets: 3,
+		globalReps: "10", 
+		globalWeight: 0,
+		globalRest: 60
+	});
+	
+	// Page view management state (simplified for debugging)
+	const [currentView, setCurrentView] = useState('main');
+	const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
+	// const [showWorkoutChoice, setShowWorkoutChoice] = useState(false); // Temporarily disabled
+	
 	// Hover tracking state
 	const [hoverTimers, setHoverTimers] = useState({});
 	const [instructionViewTimers, setInstructionViewTimers] = useState({});
-	
 
-// Hover tracking functions
+	// Quick-start workout presets
+	const quickStartPresets = [
+		{
+			name: "Quick Full Body",
+			exercises: ["Bench Press", "Squats", "Deadlift", "Pull-ups", "Shoulder Press", "Plank"],
+			sets: 3,
+			reps: "10",
+			rest: 60,
+			estimatedTime: 20
+		},
+		{
+			name: "Upper Body Power",
+			exercises: ["Bench Press", "Pull-ups", "Shoulder Press", "Bicep Curls", "Tricep Dips"],
+			sets: 3,
+			reps: "10",
+			rest: 60,
+			estimatedTime: 25
+		},
+		{
+			name: "Lower Body Focus",
+			exercises: ["Squats", "Deadlift", "Lunges", "Calf Raises"],
+			sets: 4,
+			reps: "8-12",
+			rest: 90,
+			estimatedTime: 20
+		},
+		{
+			name: "Core Crusher",
+			exercises: ["Plank", "Crunches", "Russian Twists", "Leg Raises"],
+			sets: 3,
+			reps: "15",
+			rest: 45,
+			estimatedTime: 15
+		}
+	];
+
+	// Hover tracking functions
 	const handleMouseEnter = (exerciseId) => {
 		const startTime = Date.now();
 		console.log(`Hover started on exercise: ${exerciseId}`);
@@ -92,14 +143,148 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		}
 	};
 
-// Load exercises and user data
+	// Exercise selection functions
+	const addExerciseToWorkout = (exercise) => {
+		const isAlreadyAdded = selectedExercises.some(ex => ex.exerciseId === exercise.id);
+		
+		if (isAlreadyAdded) {
+			showWarning('Exercise already added to your workout!');
+			return;
+		}
+
+		const newExercise = {
+			exerciseId: exercise.id,
+			exerciseName: exercise.name,
+			muscleGroup: exercise.muscleGroup,
+			targetSets: workoutConfig.globalSets,
+			targetReps: workoutConfig.globalReps,
+			targetWeight: workoutConfig.globalWeight,
+			restTime: workoutConfig.globalRest,
+			equipment: exercise.equipment,
+			difficulty: exercise.difficulty
+		};
+
+		setSelectedExercises([...selectedExercises, newExercise]);
+		setShowWorkoutBuilder(true);
+		showSuccess(`${exercise.name} added to workout!`);
+	};
+
+	const removeExerciseFromWorkout = (exerciseId) => {
+		const newExercises = selectedExercises.filter(ex => ex.exerciseId !== exerciseId);
+		setSelectedExercises(newExercises);
+		
+		if (newExercises.length === 0) {
+			setShowWorkoutBuilder(false);
+		}
+	};
+
+	const clearWorkout = () => {
+		setSelectedExercises([]);
+		setShowWorkoutBuilder(false);
+	};
+
+	const updateExerciseConfig = (exerciseId, field, value) => {
+		const updatedExercises = selectedExercises.map(ex => 
+			ex.exerciseId === exerciseId 
+				? { ...ex, [field]: value }
+				: ex
+		);
+		setSelectedExercises(updatedExercises);
+	};
+
+	// Exercise detail view functions
+	const handleWorkoutChoice = () => {
+		setShowWorkoutChoice(true);
+	};
+
+	const handleBackToMain = () => {
+		setCurrentView('main');
+		setShowWorkoutChoice(false);
+	};
+
+	const handleViewExerciseDetails = (exercise) => {
+		// Set the selected exercise detail for viewing
+		setSelectedExerciseDetail(exercise);
+		setCurrentView('exercise-detail');
+	};
+
+	const handleDeleteTemplate = async (templateId) => {
+		try {
+			const data = await api.delete(`/api/workouts/template/${templateId}`);
+			
+			// Remove template from local state
+			setTemplates(templates.filter(t => t._id !== templateId));
+			showSuccess('Template deleted successfully!');
+		} catch (error) {
+			if (handleAuthError(error)) {
+				return;
+			}
+			showWorkoutError(error, 'delete template', showError);
+		}
+	};
+
+	const handleStartPremadeWorkout = (preset) => {
+		const presetExercises = exercises
+			.filter(ex => preset.exercises.includes(ex.name))
+			.map(exercise => ({
+				exerciseId: exercise.id,
+				exerciseName: exercise.name,
+				muscleGroup: exercise.muscleGroup,
+				targetSets: preset.sets,
+				targetReps: preset.reps,
+				targetWeight: 0,
+				restTime: preset.rest,
+				equipment: exercise.equipment,
+				difficulty: exercise.difficulty
+			}));
+		
+		setSelectedExercises(presetExercises);
+		setShowWorkoutBuilder(true);
+		setShowWorkoutChoice(false);
+		setCurrentView('main');
+		showSuccess(`${preset.name} preset loaded! ${presetExercises.length} exercises added.`);
+	};
+
+	const handleStartCustomWorkoutFlow = () => {
+		setShowWorkoutChoice(false);
+		setCurrentView('main');
+		// Focus on exercise selection
+	};
+
+	const handleStartCustomWorkout = async () => {
+		try {
+			if (selectedExercises.length === 0) {
+				showWarning('Please add at least one exercise to your workout');
+				return;
+			}
+
+			const workoutSession = await api.post('/api/workouts/session', {
+				customName: 'Custom Workout',
+				customCategory: 'Custom',
+				exercises: selectedExercises
+			});
+
+			onStartWorkout(workoutSession);
+			setSelectedExercises([]);
+			setShowWorkoutBuilder(false);
+		} catch (error) {
+			if (handleAuthError(error)) {
+				return;
+			}
+			showWorkoutError(error, 'start custom workout', showError);
+		}
+	};
+
+	// Load exercises and user data
 	useEffect(() => {
+		console.log('Loading exercises data...');
 		setExercises(exercisesData);
+		console.log('Exercises loaded:', exercisesData.length);
 		fetchTemplates();
 		fetchPersonalRecords();
 		setLoading(false);
 	}, []);
-	
+
 	const fetchTemplates = async () => {
 		try {
 			const data = await api.get(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATES);
@@ -109,47 +294,38 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 			if (handleAuthError(error)) {
 				return; // Don't show additional error message, function will handle logout
 			}
-			console.error('Error fetching templates:', error);
+			showWorkoutError(error, 'fetch templates', showError);
 		}
 	};
-	
+
 	const fetchPersonalRecords = async () => {
 		try {
-			const data = await api.get('/api/workouts/records');
+			const data = await api.get(API_CONFIG.ENDPOINTS.PERSONAL_RECORDS);
 			const recordsMap = {};
+			
 			data.records.forEach(record => {
-				recordsMap[record.exerciseId] = record;
+				if (!recordsMap[record.exerciseId]) {
+					recordsMap[record.exerciseId] = {
+						exerciseId: record.exerciseId,
+						exerciseName: record.exerciseName,
+						muscleGroup: record.muscleGroup,
+						weight: record.weight,
+						reps: record.reps,
+						volume: record.volume,
+						duration: record.duration
+					};
+				}
 			});
+			
 			setPersonalRecords(recordsMap);
 		} catch (error) {
-			// Handle authentication errors specifically
 			if (handleAuthError(error)) {
-				return; // Don't show additional error message, function will handle logout
+				return;
 			}
-			console.error('Error fetching personal records:', error);
+			showWorkoutError(error, 'fetch personal records', showError);
 		}
 	};
 
-	if (loading) return <p className="loading-text">Loading exercises...</p>;
-
-	// Filtering logic
-	const filteredExercises = exercises.filter((ex) => {
-		const matchMuscle =
-			!filters.muscleGroup || ex.muscleGroup === filters.muscleGroup;
-		const matchEquipment =
-			!filters.equipment || ex.equipment.includes(filters.equipment);
-		const matchDifficulty =
-			!filters.difficulty || ex.difficulty === filters.difficulty;
-
-		return matchMuscle && matchEquipment && matchDifficulty;
-	});
-
-	
-
-	
-	
-	
-	
 	// Check if exercise is in user's templates
 	const isExerciseInTemplates = (exerciseId) => {
 		return templates.some(template => 
@@ -165,127 +341,70 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		// This is a simplified count - in reality we'd need to count from sessions
 		return record.weight ? 1 : 0;
 	};
-	
-// Handle template builder actions
-	const handleCreateTemplate = async (templateData) => {
-		try {
-			const isEditing = editingTemplate && editingTemplate._id;
-			let result;
-			
-			if (isEditing) {
-				result = await api.put(`${API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATE}/${editingTemplate._id}`, templateData);
-				setTemplates(prev => prev.map(t => t._id === editingTemplate._id ? result.template : t));
-				showSuccess('Template updated successfully!');
-			} else {
-				result = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATE, templateData);
-				setTemplates(prev => [...prev, result.template]);
-				showSuccess('Template created successfully!');
-			}
-			
-			setShowTemplateBuilder(false);
-			setEditingTemplate(null);
-		} catch (error) {
-			console.error('Error saving template:', error);
-			showWorkoutError(error, `${isEditing ? 'update' : 'create'} template`, showError);
-		}
-	};
 
-	// Handle template deletion
-	const handleDeleteTemplate = async (templateId) => {
-		if (!window.confirm('Are you sure you want to delete this template?')) {
-			return;
-		}
+	// Filter exercises based on current filters
+	const filteredExercises = exercises.filter(ex => {
+		const matchMuscle = !filters.muscleGroup || ex.muscleGroup === filters.muscleGroup;
+		const matchEquipment = !filters.equipment || ex.equipment === filters.equipment;
+		const matchDifficulty = !filters.difficulty || ex.difficulty === filters.difficulty;
 
-		try {
-			await api.delete(`${API_CONFIG.ENDPOINTS.WORKOUT_TEMPLATE}/${templateId}`);
-			setTemplates(prev => prev.filter(t => t._id !== templateId));
-			showSuccess('Template deleted successfully!');
-		} catch (error) {
-			// Handle authentication errors specifically
-			if (handleAuthError(error)) {
-				return; // Don't show additional error message, function will handle logout
-			}
-			showWorkoutError(error, `${isEditing ? 'update' : 'create'} template`, showError);
-		}
-	};
+		return matchMuscle && matchEquipment && matchDifficulty;
+	});
 
-	// Handle starting workout from template
-	const handleStartWorkoutFromTemplate = async (template) => {
-		try {
-			const session = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_SESSION, {
-				workoutTemplateId: template._id
-			});
-			
-			// Navigate to workout session (assuming this is handled by parent component)
-			if (onStartWorkout) {
-				onStartWorkout(session);
-			}
-		} catch (error) {
-			// Handle authentication errors specifically
-			if (handleAuthError(error)) {
-				return; // Don't show additional error message, function will handle logout
-			}
-			showWorkoutError(error, 'workout start from template', showError);
-		}
-	};
-	
-	
+	// Show loading state
+	if (loading) {
+		return (
+			<div className="exercise-container">
+				<div className="loading-state">
+					<div className="spinner"></div>
+					<p>Loading exercises...</p>
+				</div>
+			</div>
+		);
+	}
 
+	// Main view
 	return (
 		<div className="exercise-container">
-			{/* Header with actions */}
-			<div className="exercises-header">
-				<h2 className="exercise-title">Gym Exercises</h2>
-				
-				<div className="exercises-actions">
-					{onStartWorkout && (
-						<button 
-							onClick={() => setShowWorkoutStarter(true)}
-							className="btn btn-primary start-workout-btn"
-						>
-							🏋️ Start Workout
-						</button>
-					)}
+			{/* Enhanced Navigation Header */}
+			<div className="enhanced-navigation">
+				<div className="nav-container">
+					<div className="nav-title">
+						<h1 className="main-title">💪 Gym Workout Platform</h1>
+						<p className="nav-subtitle">Build Workouts • Track Progress • Reach Goals</p>
+					</div>
 					
-					{onQuickWorkout && (
-						<button 
-							onClick={() => {
-								onQuickWorkout();
-							}}
-							className="btn btn-primary quick-workout-btn"
-						>
-							🏋️ Workout Center
-						</button>
-					)}
-					
-					{onCreateTemplate && (
-						<button 
-							onClick={() => {
-								onCreateTemplate();
-							}}
-							className="btn btn-secondary create-template-btn"
-						>
-							📝 Create Template
-						</button>
-					)}
-					
-					{onViewHistory && (
-						<button 
-							onClick={onViewHistory}
-							className="btn btn-secondary history-btn"
-						>
-							📊 Workout History
-						</button>
-					)}
-					
-					{onViewProfile && (
-						<button 
-							onClick={onViewProfile}
-							className="btn btn-secondary profile-btn"
-						>
-							👤 My Progress
-						</button>
-					)}
+					<div className="nav-buttons">
+						{onStartWorkout && (
+							<button 
+								onClick={currentView === 'main' ? handleWorkoutChoice : handleBackToMain}
+								className="nav-btn primary-btn"
+							>
+								<span className="btn-icon">{currentView === 'main' ? '🏋️' : '⬅️'}</span>
+								<span className="btn-text">{currentView === 'main' ? 'Start Workout' : 'Back'}</span>
+							</button>
+						)}
+						
+						{onViewHistory && currentView === 'main' && (
+							<button 
+								onClick={onViewHistory}
+								className="nav-btn secondary-btn"
+							>
+								<span className="btn-icon">📊</span>
+								<span className="btn-text">Workout History</span>
+							</button>
+						)}
+						
+						{onViewProfile && currentView === 'main' && (
+							<button 
+								onClick={onViewProfile}
+								className="nav-btn secondary-btn"
+							>
+								<span className="btn-icon">👤</span>
+								<span className="btn-text">My Progress</span>
+							</button>
+						)}
+					</div>
 				</div>
 			</div>
 
@@ -310,36 +429,33 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 					
 					<div className="intro-features">
 						<div className="feature-card">
-							<div className="feature-icon">🏋️</div>
+							<div className="feature-icon">🧠</div>
 							<h5>Smart Workouts</h5>
-							<p>Track every set, rep, and personal record with precision</p>
+							<p>AI-powered workout recommendations based on your goals and fitness level</p>
 						</div>
 						<div className="feature-card">
-							<div className="feature-icon">📝</div>
+							<div className="feature-icon">📋</div>
 							<h5>Custom Templates</h5>
-							<p>Create and save personalized workout routines for any fitness goal</p>
+							<p>Create and save personalized workout templates for quick access</p>
 						</div>
 						<div className="feature-card">
-							<div className="feature-icon">📊</div>
+							<div className="feature-icon">📈</div>
 							<h5>Progress Analytics</h5>
-							<p>Monitor your improvement with detailed performance insights</p>
+							<p>Track your performance with detailed analytics and insights</p>
 						</div>
 					</div>
 					
 					<div className="intro-call-to-action">
-						<p>
-							<strong>Ready to transform your fitness?</strong> Start by browsing our exercise library 
-							or create your first custom workout template. Your journey to better health begins here!
-						</p>
+						<p>Ready to start your workout? Browse our exercise library or choose from premade workouts below!</p>
 					</div>
 				</div>
 			</div>
 
-			{/* Filters */}
-			<Filter
-				filters={filters}
-				setFilters={setFilters}
-				allExercises={exercises}
+			{/* Filter Section */}
+			<Filter 
+				filters={filters} 
+				setFilters={setFilters} 
+				exercises={exercises}
 			/>
 
 			{/* Templates Section */}
@@ -376,13 +492,6 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 										>
 											🗑️
 										</button>
-										<button 
-											onClick={() => handleStartWorkoutFromTemplate(template)}
-											className="btn btn-small btn-success"
-											title="Start workout from this template"
-										>
-											▶️
-										</button>
 									</div>
 								</div>
 								<p className="template-description">{template.description}</p>
@@ -390,39 +499,29 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 									<span className="template-category">{template.category}</span>
 									<span className="template-exercises-count">{template.exercises.length} exercises</span>
 								</div>
-								<div className="template-exercises-preview">
-									{template.exercises.slice(0, 3).map((ex, idx) => (
-										<span key={idx} className="exercise-chip">
-											{ex.exerciseName}
-										</span>
-									))}
-									{template.exercises.length > 3 && (
-										<span className="exercise-chip more">+{template.exercises.length - 3} more</span>
-									)}
-								</div>
 							</div>
 						))}
 					</div>
 				) : (
 					<div className="no-templates">
-						<p>You haven't created any workout templates yet.</p>
-						<p>Click "Create Template" to get started!</p>
+						<p>No templates created yet. Start building your custom workouts!</p>
 					</div>
 				)}
 			</div>
 
-			{/* Exercise grid */}
+			{/* Exercise Grid */}
 			<div className="exercise-grid enhanced">
 				{filteredExercises.length > 0 ? (
 					filteredExercises.map((ex) => {
 						const isInTemplates = isExerciseInTemplates(ex.id);
 						const completionCount = getExerciseCompletionCount(ex.id);
 						const personalRecord = personalRecords[ex.id];
+						const isSelected = selectedExercises.some(selEx => selEx.exerciseId === ex.id);
 						
 						return (
 							<div
 								key={ex.id}
-								className={`exercise-card enhanced ${isInTemplates ? 'in-templates' : ''}`}
+								className={`exercise-card enhanced ${isInTemplates ? 'in-templates' : ''} ${isSelected ? 'selected' : ''}`}
 								onMouseEnter={() => handleMouseEnter(ex.id)}
 								onMouseLeave={() => handleMouseLeave(ex.id)}
 								onClick={() => handleExerciseClick(ex.id, ex.name)}
@@ -518,7 +617,40 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 									</div>
 								)}
 
-								
+								{/* Exercise Actions */}
+								<div className="exercise-actions">
+									<button 
+										className="btn btn-info btn-small"
+										onClick={(e) => {
+											e.stopPropagation();
+											handleViewExerciseDetails(ex);
+										}}
+									>
+										👁️ View Details
+									</button>
+									
+									{isSelected ? (
+										<button 
+											className="btn btn-success btn-small"
+											onClick={(e) => {
+												e.stopPropagation();
+											}}
+											disabled
+										>
+											✓ Added
+										</button>
+									) : (
+										<button 
+											className="btn btn-primary btn-small"
+											onClick={(e) => {
+												e.stopPropagation();
+												addExerciseToWorkout(ex);
+											}}
+										>
+											+ Add to Workout
+										</button>
+									)}
+								</div>
 							</div>
 						);
 					})
@@ -526,116 +658,117 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 					<p className="no-results">No exercises found.</p>
 				)}
 			</div>
-			
-			{/* Template Builder Modal */}
-			{showTemplateBuilder && (
-				<div className="modal-overlay" onClick={() => {
-					setShowTemplateBuilder(false);
-					setEditingTemplate(null);
-				}}>
-					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
-						<WorkoutTemplateBuilder
-							onSave={handleCreateTemplate}
-							onCancel={() => {
-								setShowTemplateBuilder(false);
-								setEditingTemplate(null);
-							}}
-							initialTemplate={editingTemplate}
-						/>
-					</div>
-				</div>
-			)}
 
-			{/* Workout Starter Modal */}
-			{showWorkoutStarter && (
-				<div className="modal-overlay" onClick={() => setShowWorkoutStarter(false)}>
-					<div className="modal-content workout-starter-modal" onClick={(e) => e.stopPropagation()}>
-						<div className="modal-header">
-							<h2>Start Your Workout</h2>
-							<button 
-								className="close-btn"
-								onClick={() => setShowWorkoutStarter(false)}
-							>
-								×
-							</button>
+			{/* Custom Workout Builder Panel */}
+			{showWorkoutBuilder && selectedExercises.length > 0 && (
+				<div className="workout-builder-panel">
+					<div className="workout-builder-header">
+						<h3>💪 Your Custom Workout</h3>
+						<div className="workout-summary">
+							<span className="exercise-count">{selectedExercises.length} exercises</span>
+							<span className="estimated-time">~{selectedExercises.length * 5} min</span>
 						</div>
-						<div className="modal-body">
-							<div className="workout-options">
-								{/* Quick Start Option */}
-								<div className="workout-option">
-									<h3>🏃 Quick Start</h3>
-									<p>Start an empty workout and add exercises as you go</p>
-									<button 
-										onClick={() => {
-											try {
-												onStartWorkout();
-												setShowWorkoutStarter(false);
-											} catch (error) {
-												console.error('Error starting workout:', error);
-												showWorkoutError(error, 'quick workout start', showError);
-											}
-										}}
-										className="btn btn-primary"
-									>
-										Start Empty Workout
-									</button>
-								</div>
+					</div>
 
-								{/* Templates Option */}
-								<div className="workout-option">
-									<h3>📋 Use Template</h3>
-									<p>Choose from your saved workout templates</p>
-									<div className="templates-selection">
-										{templates.length > 0 ? (
-											templates.map(template => (
-												<div key={template._id} className="template-option">
-													<div className="template-info">
-														<h4>{template.name}</h4>
-														<p>{template.category} • {template.exercises.length} exercises</p>
-													</div>
-													<button 
-														onClick={() => {
-															try {
-																handleStartWorkoutFromTemplate(template);
-																setShowWorkoutStarter(false);
-		} catch (error) {
-			// Handle authentication errors specifically
-			if (handleAuthError(error)) {
-				return; // Don't show additional error message, function will handle logout
-			}
-			showWorkoutError(error, `${editingTemplate ? 'update' : 'create'} template`, showError);
-		}
-														}}
-														className="btn btn-secondary btn-small"
-													>
-														Start
-													</button>
-												</div>
-											))
-										) : (
-											<div className="no-templates-option">
-												<p>No templates yet</p>
-												<button 
-													onClick={() => {
-														setShowWorkoutStarter(false);
-														setEditingTemplate(null);
-														setShowTemplateBuilder(true);
-													}}
-													className="btn btn-outline"
-												>
-													Create First Template
-												</button>
-											</div>
-										)}
+					<div className="selected-exercises-list">
+						{selectedExercises.map((exercise, index) => (
+							<div key={exercise.exerciseId} className="selected-exercise">
+								<div className="exercise-info">
+									<span className="exercise-number">{index + 1}</span>
+									<div className="exercise-details">
+										<h4>{exercise.exerciseName}</h4>
+										<div className="exercise-config">
+											<input 
+												type="number" 
+												value={exercise.targetSets}
+												onChange={(e) => updateExerciseConfig(exercise.exerciseId, 'targetSets', e.target.value)}
+												min="1" max="10"
+												className="config-input"
+											/>
+											<span>sets ×</span>
+											<input 
+												type="text" 
+												value={exercise.targetReps}
+												onChange={(e) => updateExerciseConfig(exercise.exerciseId, 'targetReps', e.target.value)}
+												className="config-input"
+											/>
+											<span>reps</span>
+										</div>
 									</div>
 								</div>
+								<button 
+									className="btn btn-danger btn-small"
+									onClick={() => removeExerciseFromWorkout(exercise.exerciseId)}
+								>
+									🗑️
+								</button>
 							</div>
-						</div>
+						))}
+					</div>
+
+					<div className="workout-builder-actions">
+						<button 
+							className="btn btn-primary"
+							onClick={handleStartCustomWorkout}
+							disabled={selectedExercises.length === 0}
+						>
+							🚀 Start Workout
+						</button>
+						<button 
+							className="btn btn-secondary"
+							onClick={() => {/* Save as template functionality */}}
+						>
+							💾 Save Template
+						</button>
+						<button 
+							className="btn btn-outline"
+							onClick={clearWorkout}
+						>
+							Clear All
+						</button>
 					</div>
 				</div>
 			)}
-			
-			
+
+			{/* FAQ Section */}
+			<div className="faq-section">
+				<div className="faq-header">
+					<h3>❓ Frequently Asked Questions</h3>
+					<p>Everything you need to know about using our workout platform</p>
+				</div>
+				
+				<div className="faq-grid">
+					<div className="faq-item">
+						<h4>How do I start a workout?</h4>
+						<p>Click the "Start Workout" button and choose between premade workouts or build your own custom workout by selecting exercises.</p>
+					</div>
+					
+					<div className="faq-item">
+						<h4>Can I create my own workout templates?</h4>
+						<p>Yes! Select exercises from the library, configure sets and reps, then save your custom workout as a template for future use.</p>
+					</div>
+					
+					<div className="faq-item">
+						<h4>How is my progress tracked?</h4>
+						<p>Your workouts are automatically saved to history, and we track personal records, volume, and completion rates in your progress dashboard.</p>
+					</div>
+					
+					<div className="faq-item">
+						<h4>What equipment do I need?</h4>
+						<p>Our exercise library includes bodyweight exercises and workouts for various equipment. Use the filter to find exercises that match your available equipment.</p>
+					</div>
+					
+					<div className="faq-item">
+						<h4>How do I view exercise details?</h4>
+						<p>Click the "👁️ View Details" button on any exercise card to see comprehensive information including instructions, muscle groups, and difficulty.</p>
+					</div>
+					
+					<div className="faq-item">
+						<h4>Can I modify workouts during a session?</h4>
+						<p>Yes! You can add or remove exercises, adjust weights and reps, and modify your workout in real-time during your training session.</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

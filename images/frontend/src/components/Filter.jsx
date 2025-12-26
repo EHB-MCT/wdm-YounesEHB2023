@@ -1,15 +1,18 @@
 import React from "react";
 import trackEvent from "../utils/trackEvent";
 
-export default function Filter({ filters, setFilters, allExercises }) {
+export default function Filter({ filters, setFilters, exercises }) {
+	// Safety check to prevent undefined errors
+	const exerciseList = exercises || [];
+	
 	const uniqueMuscleGroups = [
-		...new Set(allExercises.map((ex) => ex.muscleGroup)),
+		...new Set(exerciseList.map((ex) => ex.muscleGroup)),
 	];
 	const uniqueEquipments = [
-		...new Set(allExercises.flatMap((ex) => ex.equipment.split(", "))),
+		...new Set(exerciseList.flatMap((ex) => ex.equipment.split(", "))),
 	];
 	const uniqueDifficulties = [
-		...new Set(allExercises.map((ex) => ex.difficulty)),
+		...new Set(exerciseList.map((ex) => ex.difficulty)),
 	];
 
 	const handleFilterChange = (e) => {
