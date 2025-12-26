@@ -21,6 +21,17 @@ router.get('/stats', adminAuth, adminController.getUserStats.bind(adminControlle
 router.get('/users/:userId/insights', adminAuth, adminController.getUserInsights.bind(adminController));
 router.get('/insights', adminAuth, adminController.getAllUserInsights.bind(adminController));
 
+// Chart data endpoints
+router.get('/charts/user-growth', adminAuth, adminController.getUserGrowthChart.bind(adminController));
+router.get('/charts/workout-frequency', adminAuth, adminController.getWorkoutFrequencyChart.bind(adminController));
+router.get('/charts/activity-heatmap', adminAuth, adminController.getActivityHeatmapChart.bind(adminController));
+router.get('/charts/user-type-distribution', adminAuth, adminController.getUserTypeDistributionChart.bind(adminController));
+
+// Enhanced user detail endpoints
+router.get('/users/:userId/activity-timeline', adminAuth, adminController.getUserActivityTimeline.bind(adminController));
+router.get('/users/:userId/personal-records', adminAuth, adminController.getUserPersonalRecords.bind(adminController));
+router.get('/users/:userId/workout-summary', adminAuth, adminController.getUserWorkoutSummary.bind(adminController));
+
 // PDF Export Routes
 router.get('/export/:userId/pdf', adminAuth, async (req, res) => {
   try {

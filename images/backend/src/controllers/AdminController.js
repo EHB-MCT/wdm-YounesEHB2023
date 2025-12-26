@@ -1,11 +1,13 @@
 import { TokenService } from '../services/TokenService.js';
 import { UserProfileService } from '../services/UserProfileService.js';
 import { EventRepository } from '../repositories/EventRepository.js';
+import { AdminChartsService } from '../services/AdminChartsService.js';
 
 export class AdminController {
 	constructor(userRepository) {
 		this.userRepository = userRepository;
 		this.eventRepository = new EventRepository();
+		this.chartsService = new AdminChartsService();
 	}
 
 	async login(req, res, next) {
@@ -138,6 +140,109 @@ export class AdminController {
 		} catch (error) {
 			console.error('Error in getAllUserInsights:', error);
 			res.status(500).json({ error: 'Failed to get user insights' });
+		}
+	}
+
+	// Chart endpoints
+	async getUserGrowthChart(req, res, next) {
+		try {
+			const { period = 'month' } = req.query;
+			const data = await this.chartsService.getUserGrowthData(period);
+			res.json(data);
+		} catch (error) {
+			console.error('Error in getUserGrowthChart:', error);
+			res.status(500).json({ error: 'Failed to get user growth data' });
+		}
+	}
+
+	async getWorkoutFrequencyChart(req, res, next) {
+		try {
+			const { period = 'month' } = req.query;
+			const data = await this.chartsService.getWorkoutFrequencyData(period);
+			res.json(data);
+		} catch (error) {
+			console.error('Error in getWorkoutFrequencyChart:', error);
+			res.status(500).json({ error: 'Failed to get workout frequency data' });
+		}
+	}
+
+	async getActivityHeatmapChart(req, res, next) {
+		try {
+			const { period = 'month' } = req.query;
+			const data = await this.chartsService.getActivityHeatmapData(period);
+			res.json(data);
+		} catch (error) {
+			console.error('Error in getActivityHeatmapChart:', error);
+			res.status(500).json({ error: 'Failed to get activity heatmap data' });
+		}
+	}
+
+	async getUserTypeDistributionChart(req, res, next) {
+		try {
+			const data = await this.chartsService.getUserTypeDistribution();
+			res.json(data);
+		} catch (error) {
+			console.error('Error in getUserTypeDistributionChart:', error);
+			res.status(500).json({ error: 'Failed to get user type distribution data' });
+		}
+	}
+
+	// Enhanced user detail endpoints
+	async getUserActivityTimeline(req, res, next) {
+		try {
+			const { userId } = req.params;
+			const { limit = 10 } = req.query;
+			
+			const { WorkoutSession } = await import('../models/WorkoutSession.js');
+			const sessions = await WorkoutSession.find({ userId })
+				.sort({ startTime: -1 })
+				.limit(parseInt(limit))
+				.select('startTime endTime templateName category status completionRate totalVolume duration rating felt');
+				
+			res.json(sessions);
+		} catch (error) {
+			console.error('Error in getUserActivityTimeline:', error);
+			res.status(500).json({ error: 'Failed to get user activity timeline' });
+		}
+	}
+
+	async getUserPersonalRecords(req, res, next) {
+		try {
+			const { userId } = req.params;
+			
+			const { default: PersonalRecord } = await import('../models/PersonalRecord.js');
+			const records = await PersonalRecord.find({ userId, isActive: true })
+				.sort({ setDate: -1 })
+				.populate('workoutSessionId', 'startTime templateName');
+				
+			res.json(records);
+		} catch (error) {
+			console.error('Error in getUserPersonalRecords:', error);
+			res.status(500).json({ error: 'Failed to get user personal records' });
+		}
+	}
+
+	async getUserWorkoutSummary(req, res, next) {
+		try {
+			const { userId } = req.params;
+			const { period = 'all' } = req.query;
+			
+			const { UserStatsService } = await import('../services/UserStatsService.js');
+			const userStatsService = new UserStatsService();
+			
+			const [currentStats, allTimeStats] = await Promise.all([
+				userStatsService.getUserStats(userId, period),
+				userStatsService.getAllTimeStats(userId)
+			]);
+			
+			res.json({
+				currentPeriod: currentStats,
+				allTime: allTimeStats,
+				period
+			});
+		} catch (error) {
+			console.error('Error in getUserWorkoutSummary:', error);
+			res.status(500).json({ error: 'Failed to get user workout summary' });
 		}
 	}
 }

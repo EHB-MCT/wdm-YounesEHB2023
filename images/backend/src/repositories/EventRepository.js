@@ -29,4 +29,18 @@ export class EventRepository {
     ]);
     return stats;
   }
+
+  async getEventsByDateRange(startDate, endDate) {
+    try {
+      return await UserEvent.find({
+        timestamp: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      }).sort({ timestamp: 1 });
+    } catch (error) {
+      console.error('Error in getEventsByDateRange:', error);
+      return [];
+    }
+  }
 }
