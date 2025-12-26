@@ -14,7 +14,7 @@ import { NotificationProvider } from "./utils/notifications";
 function App() {
 	const [token, setToken] = useState(localStorage.getItem("token"));
 	const [isAdmin, setIsAdmin] = useState(localStorage.getItem("isAdmin") === "true");
-	const [currentView, setCurrentView] = useState('exercises');
+	const [currentView, setCurrentView] = useState('main');
 	const [activeSession, setActiveSession] = useState(null);
 	const [templateMode, setTemplateMode] = useState(null); // 'create' or 'edit'
 	const [editingTemplate, setEditingTemplate] = useState(null);
@@ -56,7 +56,7 @@ function App() {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${token}`
+'Authorization': `Bearer ${localStorage.getItem('token')}`
 					},
 					body: JSON.stringify({
 						customName: 'Custom Workout',
@@ -188,9 +188,7 @@ function App() {
 								onStartWorkout={handleStartWorkout}
 								onViewProfile={() => setCurrentView('profile')}
 								onViewHistory={() => setCurrentView('history')}
-								onCreateTemplate={handleCreateTemplate}
 								onEditTemplate={handleEditTemplate}
-								onQuickWorkout={handleQuickWorkout}
 							/>
 						)}
 						
