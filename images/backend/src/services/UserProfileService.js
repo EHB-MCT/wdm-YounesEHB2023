@@ -1,4 +1,28 @@
 export class UserProfileService {
+	// Exercise data for mapping IDs to names
+	static EXERCISE_DATA = [
+		{"id": 1, "name": "Barbell Biceps Curl"},
+		{"id": 2, "name": "Bench Press"},
+		{"id": 3, "name": "Chest Fly Machine"},
+		{"id": 4, "name": "Deadlift"},
+		{"id": 5, "name": "Dumbbell Biceps Curl"},
+		{"id": 6, "name": "Dumbbell Lateral Raise"},
+		{"id": 7, "name": "Dumbbell Shoulder Press"},
+		{"id": 8, "name": "Hammer Curl"},
+		{"id": 9, "name": "Incline Dumbbell Press"},
+		{"id": 10, "name": "Lat Pulldown"},
+		{"id": 11, "name": "Leg Press"},
+		{"id": 12, "name": "Leg Raise"},
+		{"id": 13, "name": "Lunge"},
+		{"id": 14, "name": "Overhead Triceps Extension"},
+		{"id": 15, "name": "Pull-up"},
+		{"id": 16, "name": "Push-up"},
+		{"id": 17, "name": "Romanian Deadlift"},
+		{"id": 18, "name": "Seated Cable Row"},
+		{"id": 19, "name": "Squat"},
+		{"id": 20, "name": "Triceps Pushdown"}
+	];
+
 	// User classification thresholds
 	static USER_TYPE_THRESHOLDS = {
 		UNMOTIVATED: {
@@ -204,7 +228,11 @@ export class UserProfileService {
 			? Object.entries(exerciseFrequency)
 				.sort((a, b) => b[1] - a[1])
 				.slice(0, 3)
-				.map(([id, count]) => ({ exerciseId: id, interactionCount: count }))
+				.map(([id, count]) => ({ 
+					exerciseId: id, 
+					exerciseName: this.getExerciseNameById(id),
+					interactionCount: count 
+				}))
 			: [];
 
 		// Activity patterns
@@ -286,5 +314,15 @@ export class UserProfileService {
 		const now = new Date();
 		const diffTime = Math.abs(now - firstDate);
 		return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+	}
+
+	/**
+	 * Get exercise name by ID
+	 * @param {Number} exerciseId - Exercise ID
+	 * @returns {String} Exercise name or fallback text
+	 */
+	static getExerciseNameById(exerciseId) {
+		const exercise = this.EXERCISE_DATA.find(ex => ex.id === parseInt(exerciseId));
+		return exercise ? exercise.name : `Exercise ${exerciseId}`;
 	}
 }

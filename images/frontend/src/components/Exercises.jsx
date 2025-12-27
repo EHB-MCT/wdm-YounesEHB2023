@@ -183,6 +183,68 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		setShowWorkoutBuilder(false);
 	};
 
+	const handleSaveWorkoutAsTemplate = async () => {
+		if (selectedExercises.length === 0) {
+			alert('Please add exercises to your workout before saving as a template.');
+			return;
+		}
+
+		const templateName = prompt('Enter a name for your workout template:');
+		if (!templateName || templateName.trim() === '') {
+			return;
+		}
+
+		try {
+			const token = localStorage.getItem('token');
+			if (!token) {
+				alert('Please log in to save templates.');
+				return;
+			}
+
+			// Prepare template data with full exercise details
+			const templateData = {
+				name: templateName.trim(),
+				description: `Custom workout with ${selectedExercises.length} exercise${selectedExercises.length > 1 ? 's' : ''}`,
+				category: 'Custom',
+				tags: ['custom'],
+				exercises: selectedExercises.map((ex, index) => ({
+					exerciseId: ex.exerciseId.toString(),
+					exerciseName: ex.exerciseName,
+					muscleGroup: ex.muscleGroup,
+					targetSets: ex.sets || ex.targetSets || workoutConfig.globalSets,
+					targetReps: ex.reps || ex.targetReps || workoutConfig.globalReps,
+					targetWeight: ex.weight || ex.targetWeight || workoutConfig.globalWeight,
+					restTime: ex.rest || ex.restTime || workoutConfig.globalRest,
+					exerciseRestTime: 90, // Default rest time between exercises
+					order: index + 1
+				}))
+			};
+
+			const response = await fetch('http://localhost:5000/api/workouts/template', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
+				},
+				body: JSON.stringify(templateData)
+			});
+
+			if (response.ok) {
+				alert(`Template "${templateName}" saved successfully!`);
+				// Refresh templates to show the new one
+				await fetchTemplates();
+				// Clear the workout builder
+				clearWorkout();
+			} else {
+				const error = await response.json();
+				throw new Error(error.error || 'Failed to save template');
+			}
+		} catch (error) {
+			console.error('Error saving template:', error);
+			alert('Failed to save template: ' + error.message);
+		}
+	};
+
 	const updateExerciseConfig = (exerciseId, field, value) => {
 		const updatedExercises = selectedExercises.map(ex => 
 			ex.exerciseId === exerciseId 
@@ -716,7 +778,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 						</button>
 						<button 
 							className="btn btn-secondary"
-							onClick={() => {/* Save as template functionality */}}
+							onClick={handleSaveWorkoutAsTemplate}
 						>
 							💾 Save Template
 						</button>

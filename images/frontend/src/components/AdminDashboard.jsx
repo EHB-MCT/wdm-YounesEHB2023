@@ -627,7 +627,7 @@ export default function AdminDashboard() {
 										<ul className="top-exercises">
 											{selectedUser.topExercises.map((exercise, index) => (
 												<li key={index}>
-													<span className="exercise-name">Exercise ID: {exercise.exerciseId}</span>
+													<span className="exercise-name">{exercise.exerciseName || `Exercise ${exercise.exerciseId}`}</span>
 													<span className="exercise-count">{exercise.interactionCount} interactions</span>
 												</li>
 											))}
