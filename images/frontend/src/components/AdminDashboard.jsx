@@ -728,9 +728,6 @@ export default function AdminDashboard() {
 				<section className="admin-actions">
 					<h2>Quick Actions</h2>
 					<div className="actions-grid">
-						<button className="action-btn" onClick={() => window.open('/', '_blank')}>
-							👁️ Preview User Experience
-						</button>
 						<button className="action-btn action-secondary" onClick={fetchAdminData}>
 							🔄 Refresh Data
 						</button>
