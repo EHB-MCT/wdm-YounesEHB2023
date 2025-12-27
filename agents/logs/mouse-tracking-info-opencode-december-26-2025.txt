@@ -1,0 +1,67 @@
+# Mouse Tracking Info OpenCode - December 26, 2025
+#The reason of this is that i lost a precious conversation 
+that i couldn't save in time due to clickng control + s in a opencode conversation
+
+## Subject: How to prevent and recover from Ctrl+S mouse tracking issue in OpenCode
+
+## Conversation Summary:
+User accidentally triggered mouse tracking mode in OpenCode TUI by pressing Ctrl+S, which caused the terminal to track mouse activity. In an attempt to escape this confusing mode, the user deleted the conversation by clicking the trash can icon, losing a previous important conversation.
+
+## What Ctrl+S Does in OpenCode:
+- Triggers session export/save functionality
+- Activates mouse tracking mode where terminal follows cursor
+- Can be disorienting and make the interface feel "broken"
+
+## Emergency Recovery Keys (Safe - Won't Delete Chat):
+- **Esc** - Exits mouse tracking mode, returns to normal chat
+- **Ctrl+C** - Interrupts current operation, keeps conversation intact  
+- **Ctrl+X** then **h** - Opens help menu, conversation remains
+- **Ctrl+X** then **q** - Quits entire application (ends session)
+
+## Prevention Options:
+
+### Option 1: Disable Ctrl+S Keybinding (Recommended)
+Create `opencode.json` in project root:
+```json
+{
+  "$schema": "https://opncd.ai/config.json",
+  "keybinds": {
+    "session_export": "none"
+  }
+}
+```
+
+### Option 2: Remap to Different Keybind
+```json
+{
+  "$schema": "https://opncd.ai/config.json", 
+  "keybinds": {
+    "session_export": "ctrl+shift+s"
+  }
+}
+```
+
+### Option 3: Terminal-Level Prevention
+Configure terminal to intercept Ctrl+S before reaching OpenCode
+
+### Option 4: Global Config
+Create `opencode.json` in user home directory for system-wide protection
+
+## Important Notes:
+- Emergency keys (except Ctrl+X q) DO NOT delete conversations
+- Deletion only occurs when clicking trash can icon
+- Mouse tracking mode is a documented TUI behavior
+- OpenCode doesn't maintain local conversation history by default (privacy feature)
+
+## Implementation Priority:
+1. Immediate: Create project-level opencode.json to disable Ctrl+S
+2. Long-term: Consider if export functionality should be remapped
+3. Backup: Learn escape keys for emergency recovery
+
+## Safe Export/Share Commands:
+- `/export` - Export conversation to markdown (Ctrl+X x)
+- `/share` - Create shareable link (Ctrl+X s)
+- `/sessions` - View session management (Ctrl+X l)
+
+Date: December 26, 2025
+Purpose: Prevent future Ctrl+S mouse tracking issues and provide recovery methods
