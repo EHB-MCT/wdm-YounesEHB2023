@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from 'react';
 import exercisesData from "./gym_exercises.json";
-import ExerciseLibrary from "./ExerciseLibrary";
+import Filter from "./Filter";
 import trackEvent from "../utils/trackEvent";
 import { useNotifications, showWorkoutError } from "../utils/notifications";
 import { handleAuthError } from "../utils/api.js";
@@ -17,6 +17,11 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	
 	const [selectedExercises, setSelectedExercises] = useState([]);
 	const [isSaving, setIsSaving] = useState(false);
+	const [filters, setFilters] = useState({
+		muscleGroup: "",
+		equipment: "",
+		difficulty: ""
+	});
 	
 	const categories = ["Upper Body", "Lower Body", "Full Body", "Core", "Cardio", "Custom"];
 	
@@ -147,6 +152,28 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 		}
 		
 		setTemplate(prev => ({ ...prev, category: suggestedCategory }));
+	};
+	
+	// Filter exercises based on current filters
+	const filteredExercises = useMemo(() => {
+		return exercisesData.filter(ex => {
+			const matchMuscle = !filters.muscleGroup || ex.muscleGroup === filters.muscleGroup;
+			const matchEquipment = !filters.equipment || ex.equipment === filters.equipment;
+			const matchDifficulty = !filters.difficulty || ex.difficulty === filters.difficulty;
+			
+			return matchMuscle && matchEquipment && matchDifficulty;
+		});
+	}, [filters]);
+	
+	// Handle exercise click for template builder
+	const handleExerciseClick = (exercise) => {
+		const isAlreadyAdded = template.exercises.some(ex => String(ex.exerciseId) === String(exercise.id));
+		
+		if (!isAlreadyAdded) {
+			addExerciseToTemplate(exercise);
+		} else {
+			removeExerciseFromTemplate(exercise.id);
+		}
 	};
 	
 	useEffect(() => {
@@ -285,11 +312,25 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 							<h2>Workout Exercises</h2>
 							<span className="exercise-count">{template.exercises.length} exercises</span>
 						</div>
-						{template.exercises.length > 0 && (
-							<div className="category-badge">
-								{template.category}
-							</div>
-						)}
+						<div className="header-right">
+							{template.exercises.length > 0 && (
+								<div className="category-badge">
+									{template.category}
+								</div>
+							)}
+							<button 
+								className="btn btn-secondary btn-small"
+								onClick={() => {
+									// Scroll to exercise library
+									const libraryElement = document.querySelector('.exercise-library-card');
+									if (libraryElement) {
+										libraryElement.scrollIntoView({ behavior: 'smooth' });
+									}
+								}}
+							>
+								➕ Add More Exercises
+							</button>
+						</div>
 					</div>
 					
 					<div className="card-content">
@@ -298,6 +339,18 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 								<div className="empty-icon">🏋️</div>
 								<h3>No exercises added yet</h3>
 								<p>Start building your workout by adding exercises from the exercise library below</p>
+								<button 
+									className="btn btn-primary"
+									onClick={() => {
+										// Scroll to exercise library
+										const libraryElement = document.querySelector('.exercise-library-card');
+										if (libraryElement) {
+											libraryElement.scrollIntoView({ behavior: 'smooth' });
+										}
+									}}
+								>
+									➕ Browse Exercise Library
+								</button>
 							</div>
 						) : (
 							<div className="exercises-list">
@@ -408,29 +461,71 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 
 				{/* Exercise Library Section */}
 				<section className="exercise-library-card">
-					<ExerciseLibrary
-						mode="builder"
-						selectedExercises={template.exercises}
-						onExerciseSelect={(exercise) => {
-							// Handle exercise selection/deselection
-							const isAlreadyAdded = template.exercises.some(ex => 
-								String(ex.exerciseId) === String(exercise.id)
-							);
-							
-							if (!isAlreadyAdded) {
-								addExerciseToTemplate(exercise);
-							}
-						}}
-						onExerciseDeselect={(exercise) => {
-							// Handle exercise deselection
-							removeExerciseFromTemplate(exercise.id);
-						}}
-						enableMultiSelect={true}
-						showFilters={true}
-						showSearch={true}
-						showCategories={true}
-						title="Exercise Library"
+					<div className="card-header">
+						<h2>📚 Exercise Library</h2>
+						<p className="library-description">Click on any exercise to add it to your workout template</p>
+					</div>
+					
+					{/* Filter Section */}
+					<Filter 
+						filters={filters} 
+						setFilters={setFilters} 
+						exercises={exercisesData}
 					/>
+
+					{/* Exercise Grid */}
+					<div className="exercise-grid enhanced">
+						{filteredExercises.map((exercise) => {
+							const isAdded = template.exercises.some(ex => String(ex.exerciseId) === String(exercise.id));
+							
+							return (
+								<div
+									key={exercise.id}
+									className={`exercise-card enhanced ${isAdded ? 'selected' : ''}`}
+									onClick={() => handleExerciseClick(exercise)}
+								>
+									{/* Exercise Header with Indicators */}
+									<div className="exercise-card-header">
+										<h3 className="exercise-name">{exercise.name || "Unknown Name"}</h3>
+										
+										<div className="exercise-indicators">
+											{isAdded && (
+												<span className="indicator in-templates" title="Added to template">
+													✅ Added
+												</span>
+											)}
+										</div>
+									</div>
+
+									{exercise.video ? (
+										<video className="exercise-video" controls preload="metadata">
+											<source src={exercise.video} type="video/mp4" />
+											Your browser does not support the video tag.
+										</video>
+									) : (
+										<div className="exercise-image placeholder">
+											No video available
+										</div>
+									)}
+
+									<div className="exercise-details">
+										<p className="exercise-info">
+											<strong>Muscle Group:</strong> {exercise.muscleGroup}
+										</p>
+										<p className="exercise-info">
+											<strong>Equipment:</strong> {exercise.equipment}
+										</p>
+										<p className="exercise-info">
+											<strong>Difficulty:</strong>{" "}
+											<span className={`difficulty-${exercise.difficulty.toLowerCase()}`}>
+												{exercise.difficulty}
+											</span>
+										</p>
+									</div>
+								</div>
+							);
+						})}
+					</div>
 				</section>
 			</main>
 		</div>

@@ -2,6 +2,8 @@ import express from "express";
 import { WorkoutController } from "../controllers/WorkoutController.js";
 import { UserStatsService } from "../services/UserStatsService.js";
 import PersonalRecord from "../models/PersonalRecord.js";
+import WorkoutSession from "../models/WorkoutSession.js";
+import WorkoutTemplate from "../models/WorkoutTemplate.js";
 import { UtilsService } from "../services/UtilsService.js";
 import auth from "../middleware/auth.js";
 import { errorHandler } from "../middleware/errorHandler.js";
