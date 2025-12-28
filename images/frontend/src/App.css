@@ -4875,6 +4875,7 @@
 	transition: all var(--transition-base);
 	position: relative;
 	overflow: hidden;
+	min-height: 100px;
 }
 
 .metric-card::before {
@@ -4924,15 +4925,39 @@
 }
 
 .metric-value {
-	font-size: var(--font-size-2xl);
+	font-size: var(--font-size-3xl);
 	font-weight: 700;
-	color: #ffffff;
+	color: #1f2937;
 	margin-bottom: var(--spacing-xs);
+	line-height: 1;
+	display: block;
 }
 
 .metric-label {
-	color: #0956c3;
+	color: #6b7280;
 	font-size: var(--font-size-sm);
+	font-weight: 500;
+}
+
+/* Metric icon colors based on card type */
+.metric-card.primary .metric-icon {
+	color: #3b82f6;
+}
+
+.metric-card.success .metric-icon {
+	color: #10b981;
+}
+
+.metric-card.warning .metric-icon {
+	color: #f59e0b;
+}
+
+.metric-card.info .metric-icon {
+	color: #8b5cf6;
+}
+
+.metric-icon {
+	font-size: 2rem;
 	font-weight: 500;
 	margin-bottom: var(--spacing-sm);
 }
