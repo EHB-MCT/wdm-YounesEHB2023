@@ -488,6 +488,16 @@ input:focus, select:focus, textarea:focus {
 	box-shadow: var(--shadow-lg);
 }
 
+.exercise-card.enhanced.selected {
+	border: 2px solid var(--color-primary);
+	background: var(--color-primary-light);
+}
+
+.exercise-card.enhanced.selected:hover {
+	transform: translateY(-6px);
+	box-shadow: var(--shadow-lg), 0 0 0 4px var(--color-primary);
+}
+
 .exercise-card-header {
 	display: flex;
 	justify-content: space-between;
