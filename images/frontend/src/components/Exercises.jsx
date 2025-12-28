@@ -260,11 +260,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		setShowWorkoutChoice(false);
 	};
 
-	const handleViewExerciseDetails = (exercise) => {
-		// Set the selected exercise detail for viewing
-		setSelectedExerciseDetail(exercise);
-		setCurrentView('exercise-detail');
-	};
+	
 
 	const handleDeleteTemplate = async (templateId) => {
 		try {
@@ -705,16 +701,6 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 
 								{/* Exercise Actions */}
 								<div className="exercise-actions">
-									<button 
-										className="btn btn-info btn-small"
-										onClick={(e) => {
-											e.stopPropagation();
-											handleViewExerciseDetails(ex);
-										}}
-									>
-										👁️ View Details
-									</button>
-									
 									{isSelected ? (
 										<button 
 											className="btn btn-success btn-small"
@@ -846,7 +832,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 					
 					<div className="faq-item">
 						<h4>How do I view exercise details?</h4>
-						<p>Click the "👁️ View Details" button on any exercise card to see comprehensive information including instructions, muscle groups, and difficulty.</p>
+						<p>Click on any exercise card to see comprehensive information including instructions, muscle groups, and difficulty.</p>
 					</div>
 					
 					<div className="faq-item">

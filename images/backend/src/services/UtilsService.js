@@ -109,7 +109,18 @@ export class UtilsService {
     const completedSessions = sessions.filter(s => s.status === 'completed');
     const totalDuration = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
     const totalVolume = sessions.reduce((sum, s) => sum + (s.totalVolume || 0), 0);
-    const averageCompletionRate = sessions.reduce((sum, s) => sum + (s.completionRate || 0), 0) / sessions.length;
+    
+    // Calculate average completion rate more safely
+    let averageCompletionRate = 0;
+    if (sessions.length > 0) {
+      const validCompletionRates = sessions
+        .map(s => s.completionRate || 0)
+        .filter(rate => rate >= 0 && rate <= 100); // Filter out invalid rates
+      
+      if (validCompletionRates.length > 0) {
+        averageCompletionRate = validCompletionRates.reduce((sum, rate) => sum + rate, 0) / validCompletionRates.length;
+      }
+    }
     
     const longestWorkout = sessions.reduce((max, s) => 
       (s.duration || 0) > (max.duration || 0) ? s : max, sessions[0]);
