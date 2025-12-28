@@ -728,8 +728,8 @@ export default function AdminDashboard() {
 				<section className="admin-actions">
 					<h2>Quick Actions</h2>
 					<div className="actions-grid">
-						<button className="action-btn action-secondary" onClick={fetchAdminData}>
-							🔄 Refresh Data
+						<button className="action-btn action-secondary" onClick={() => window.location.reload()}>
+							🔄 Refresh Page
 						</button>
 					</div>
 				</section>
