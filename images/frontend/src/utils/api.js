@@ -169,26 +169,28 @@ export const api = {
 
 // Handle authentication errors globally
 export const handleAuthError = (error) => {
-	if (error.isTokenExpired || error.code === "TOKEN_EXPIRED") {
-		// Clear expired token
+	if (error.isTokenExpired || error.code === "TOKEN_EXPIRED" || error.status === 401) {
+		// Clear all authentication data
 		localStorage.removeItem("token");
+		localStorage.removeItem("adminToken");
 		localStorage.removeItem("isAdmin");
+		localStorage.removeItem("userId");
 
 		// Show user-friendly message
-		console.log("🔑 Token expired, clearing authentication");
+		console.log("🔑 Token expired or invalid, clearing authentication");
 
 		// You can also show a modal notification here if you have a global notification system
 		if (typeof window !== "undefined") {
 			window.alert("Your session has expired. Please log in again.");
 		}
 
-		// Force page reload to go to login
-		setTimeout(() => {
-			window.location.reload();
-		}, 1000);
+		// Dispatch custom event for global auth state update
+		window.dispatchEvent(new CustomEvent('auth-expired'));
+
+		return true; // Indicate that this was an auth error
 	}
 
-	return error.isTokenExpired;
+	return false; // Not an auth error
 };
 
 export default api;

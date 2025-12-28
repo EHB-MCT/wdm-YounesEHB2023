@@ -6,10 +6,12 @@ import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
 import trackEvent from "../utils/trackEvent";
 import { useNotifications, showWorkoutError } from "../utils/notifications";
 import { API_CONFIG, api, handleAuthError } from "../utils/api.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onEditTemplate }) {
 	console.log('Exercises component mounting...');
 	const { showError, showSuccess, showWarning } = useNotifications();
+	const { token, isAuthLoading, isAuthenticated } = useAuth();
 	const [exercises, setExercises] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filters, setFilters] = useState({
@@ -350,15 +352,41 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		}
 	};
 
-	// Load exercises and user data
+	// Load exercises and user data - synchronized with auth state
 	useEffect(() => {
-		console.log('Loading exercises data...');
-		setExercises(exercisesData);
-		console.log('Exercises loaded:', exercisesData.length);
-		fetchTemplates();
-		fetchPersonalRecords();
-		setLoading(false);
-	}, []);
+		const loadData = async () => {
+			// Only load data when authentication is complete and user is authenticated
+			if (isAuthLoading) {
+				console.log('Auth still loading, waiting...');
+				return;
+			}
+
+			if (!isAuthenticated) {
+				console.log('User not authenticated, skipping data load');
+				setLoading(false);
+				return;
+			}
+			
+			try {
+				setLoading(true);
+				console.log('Loading exercises data...');
+				setExercises(exercisesData);
+				console.log('Exercises loaded:', exercisesData.length);
+				
+				// Load user-specific data with proper error handling
+				await Promise.allSettled([
+					fetchTemplates(),
+					fetchPersonalRecords()
+				]);
+			} catch (error) {
+				console.error('Error loading exercises data:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		loadData();
+	}, [isAuthenticated, isAuthLoading]); // Re-run when auth state changes
 
 	const fetchTemplates = async () => {
 		try {
@@ -426,13 +454,24 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 		return matchMuscle && matchEquipment && matchDifficulty;
 	});
 
-	// Show loading state
-	if (loading) {
+	// Show loading state during auth or data loading
+	if (isAuthLoading || loading) {
 		return (
 			<div className="exercise-container">
 				<div className="loading-state">
 					<div className="spinner"></div>
-					<p>Loading exercises...</p>
+					<p>{isAuthLoading ? 'Authenticating...' : 'Loading exercises...'}</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Show error state if not authenticated (shouldn't happen if used correctly)
+	if (!isAuthenticated) {
+		return (
+			<div className="exercise-container">
+				<div className="error-state">
+					<p>Please log in to view exercises.</p>
 				</div>
 			</div>
 		);
