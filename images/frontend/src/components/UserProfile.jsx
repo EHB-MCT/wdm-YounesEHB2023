@@ -50,10 +50,32 @@ export default function UserProfile({ onBack }) {
 			
 			const data = await response.json();
 			
+			// Debug logging
+			console.log('Stats data received:', data);
+			console.log('Total workouts:', data.totalWorkouts);
+			console.log('Average completion rate:', data.averageCompletionRate);
+			console.log('Total volume:', data.totalVolume);
+			console.log('Total duration:', data.totalDuration);
+			
 			if (!data || data.totalWorkouts === 0 || Object.keys(data).length === 0) {
-				setStats({ totalWorkouts: 0 });
-			} else {
-				setStats(data);
+				setStats({ 
+					totalWorkouts: 0,
+					averageCompletionRate: 0,
+					totalVolume: 0,
+					totalDuration: 0
+				});
+} else {
+				// Ensure all numeric values are properly handled with type checking
+				const cleanStats = {
+					...data,
+					totalWorkouts: parseInt(data.totalWorkouts) || 0,
+					averageCompletionRate: parseFloat(data.averageCompletionRate) || 0,
+					totalVolume: parseFloat(data.totalVolume) || 0,
+					totalDuration: parseInt(data.totalDuration) || 0
+				};
+				
+				console.log('Cleaned stats:', cleanStats);
+				setStats(cleanStats);
 			}
 		} catch (error) {
 			console.error('Error fetching stats:', error);
@@ -233,6 +255,8 @@ export default function UserProfile({ onBack }) {
 				</div>
 			)}
 			
+			
+			
 			{stats && stats.totalWorkouts > 0 && (
 				<>
 					{/* Key Metrics Grid */}
@@ -240,7 +264,9 @@ export default function UserProfile({ onBack }) {
 						<div className="metric-card primary">
 							<div className="metric-icon">💪</div>
 							<div className="metric-content">
-								<div className="metric-value">{stats.totalWorkouts}</div>
+								<div className="metric-value" title={`Total workouts: ${stats.totalWorkouts || 0}`}>
+									{stats.totalWorkouts > 0 ? stats.totalWorkouts : '0'}
+								</div>
 								<div className="metric-label">Total Workouts</div>
 								{stats.trends?.workouts && (
 									<div className={`metric-trend ${stats.trends.workouts.direction}`}>
@@ -254,7 +280,9 @@ export default function UserProfile({ onBack }) {
 						<div className="metric-card success">
 							<div className="metric-icon">✅</div>
 							<div className="metric-content">
-								<div className="metric-value">{stats.averageCompletionRate}%</div>
+								<div className="metric-value" title={`Completion rate: ${stats.averageCompletionRate || 0}%`}>
+									{stats.averageCompletionRate >= 0 ? `${stats.averageCompletionRate}%` : '0%'}
+								</div>
 								<div className="metric-label">Completion Rate</div>
 								{stats.trends?.completionRate && (
 									<div className={`metric-trend ${stats.trends.completionRate.direction}`}>
@@ -268,7 +296,9 @@ export default function UserProfile({ onBack }) {
 						<div className="metric-card warning">
 							<div className="metric-icon">⚖️</div>
 							<div className="metric-content">
-								<div className="metric-value">{formatNumber(stats.totalVolume)}kg</div>
+								<div className="metric-value" title={`Total volume: ${stats.totalVolume || 0}kg`}>
+									{stats.totalVolume > 0 ? `${formatNumber(stats.totalVolume)}kg` : '0kg'}
+								</div>
 								<div className="metric-label">Total Volume</div>
 								{stats.trends?.volume && (
 									<div className={`metric-trend ${stats.trends.volume.direction}`}>
@@ -282,7 +312,9 @@ export default function UserProfile({ onBack }) {
 						<div className="metric-card info">
 							<div className="metric-icon">⏱️</div>
 							<div className="metric-content">
-								<div className="metric-value">{Math.round(stats.totalDuration / 60)}h</div>
+								<div className="metric-value" title={`Total duration: ${Math.round((stats.totalDuration || 0) / 60)}h`}>
+									{stats.totalDuration > 0 ? `${Math.round(stats.totalDuration / 60)}h` : '0h'}
+								</div>
 								<div className="metric-label">Total Duration</div>
 								{stats.trends?.duration && (
 									<div className={`metric-trend ${stats.trends.duration.direction}`}>
