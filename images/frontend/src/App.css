@@ -305,7 +305,7 @@
 	justify-content: center;
 	margin-bottom: var(--spacing-2xl);
 	align-items: flex-end;
-	background: var(--color-bg-card);
+	background: #4c5768;
 	padding: var(--spacing-xl);
 	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-sm);
@@ -2849,7 +2849,7 @@
 	backdrop-filter: blur(20px);
 	border: 1px solid rgba(255, 255, 255, 0.3);
 	border-radius: var(--radius-lg);
-	color: white;
+	color: #1f2b3c;
 	font-size: var(--font-size-base);
 	cursor: pointer;
 	transition: all var(--transition-base);
