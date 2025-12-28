@@ -16,6 +16,7 @@ export default function WorkoutHistory({ onBack }) {
 	const [totalPages, setTotalPages] = useState(1);
 	const [sortBy, setSortBy] = useState('date');
 	const [sortOrder, setSortOrder] = useState('desc');
+	const [isExporting, setIsExporting] = useState(false);
 	
 	const categories = ['Upper Body', 'Lower Body', 'Full Body', 'Core', 'Cardio', 'Custom'];
 	const dateRanges = [
@@ -101,6 +102,8 @@ export default function WorkoutHistory({ onBack }) {
 	};
 	
 	const exportData = async (format = 'json') => {
+		setIsExporting(true);
+		
 		try {
 			const response = await fetch('http://localhost:5000/api/workouts/export/user', {
 				method: 'GET',
@@ -110,10 +113,17 @@ export default function WorkoutHistory({ onBack }) {
 			});
 			
 			if (!response.ok) {
-				throw new Error('Failed to export data');
+				const errorText = await response.text();
+				throw new Error(`Server error: ${response.status} - ${errorText || 'Unknown error'}`);
 			}
 			
 			const data = await response.json();
+			
+			// Check if data is empty
+			if (!data || (!data.sessions && !data.personalRecords)) {
+				alert('No workout data available to export.');
+				return;
+			}
 			
 			if (format === 'json') {
 				const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -121,19 +131,31 @@ export default function WorkoutHistory({ onBack }) {
 				const a = document.createElement('a');
 				a.href = url;
 				a.download = `workout-data-${new Date().toISOString().split('T')[0]}.json`;
+				a.style.display = 'none';
 				document.body.appendChild(a);
 				a.click();
 				document.body.removeChild(a);
 				URL.revokeObjectURL(url);
+				
+				// Show success message
+				alert(`Successfully exported ${data.sessions?.length || 0} workout sessions!`);
 			}
 			
 			trackEvent("workout_history_export", {
 				format,
-				sessionCount: sessions.length
+				sessionCount: data.sessions?.length || 0
 			});
 		} catch (error) {
 			console.error('Error exporting data:', error);
-			alert('Failed to export data. Please try again.');
+			if (error.message.includes('401')) {
+				alert('You are not authorized to export this data. Please log in again.');
+			} else if (error.message.includes('404')) {
+				alert('Export endpoint not found. Please contact support.');
+			} else {
+				alert(`Failed to export data: ${error.message}`);
+			}
+		} finally {
+			setIsExporting(false);
 		}
 	};
 	
@@ -218,12 +240,16 @@ export default function WorkoutHistory({ onBack }) {
 				
 				<div className="history-actions">
 					<div className="export-dropdown">
-						<button className="btn btn-secondary export-btn">
-							Export Data
+						<button className="btn btn-secondary export-btn" disabled={isExporting}>
+							{isExporting ? 'Exporting...' : 'Export Data'}
 						</button>
 						<div className="export-options">
-							<button onClick={() => exportData('json')} className="export-option">
-								Export as JSON
+							<button 
+								onClick={() => exportData('json')} 
+								className="export-option"
+								disabled={isExporting}
+							>
+								{isExporting ? 'Exporting...' : 'Export as JSON'}
 							</button>
 						</div>
 					</div>
