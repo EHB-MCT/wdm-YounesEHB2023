@@ -4,10 +4,10 @@ import exercisesData from "./gym_exercises.json";
 import Filter from "./Filter";
 import WorkoutTemplateBuilder from "./WorkoutTemplateBuilder";
 import trackEvent from "../utils/trackEvent";
-import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
+import { useNotifications, showWorkoutError } from "../utils/notifications";
 import { API_CONFIG, api, handleAuthError } from "../utils/api.js";
 
-export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onCreateTemplate, onEditTemplate, onQuickWorkout }) {
+export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory, onEditTemplate }) {
 	console.log('Exercises component mounting...');
 	const { showError, showSuccess, showWarning } = useNotifications();
 	const [exercises, setExercises] = useState([]);
@@ -20,10 +20,6 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	
 	const [templates, setTemplates] = useState([]);
 	const [personalRecords, setPersonalRecords] = useState({});
-	const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
-	const [editingTemplate, setEditingTemplate] = useState(null);
-	
-	const [showWorkoutStarter, setShowWorkoutStarter] = useState(false);
 	const [expandedInstructions, setExpandedInstructions] = useState(new Set());
 	
 	// Exercise selection and workout builder state
@@ -38,7 +34,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	
 	// Page view management state (simplified for debugging)
 	const [currentView, setCurrentView] = useState('main');
-	const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
+	const [showWorkoutChoice, setShowWorkoutChoice] = useState(false);
 	// const [showWorkoutChoice, setShowWorkoutChoice] = useState(false); // Temporarily disabled
 	
 	// Hover tracking state
@@ -282,6 +278,27 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 				return;
 			}
 			showWorkoutError(error, 'delete template', showError);
+		}
+	};
+
+	const handleStartTemplate = async (template) => {
+		try {
+			const data = await api.post(API_CONFIG.ENDPOINTS.WORKOUT_SESSION, {
+				workoutTemplateId: template._id
+			});
+			
+			trackEvent("template_workout_started", {
+				templateName: template.name,
+				templateCategory: template.category,
+				exerciseCount: template.exercises.length
+			});
+			
+			onStartWorkout(data);
+		} catch (error) {
+			if (handleAuthError(error)) {
+				return;
+			}
+			showWorkoutError(error, 'start template workout', showError);
 		}
 	};
 
@@ -533,6 +550,13 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 								<div className="template-header">
 									<h3>{template.name}</h3>
 									<div className="template-actions">
+										<button 
+											onClick={() => handleStartTemplate(template)}
+											className="btn btn-small btn-primary"
+											title="Start workout with this template"
+										>
+											▶️
+										</button>
 										<button 
 											onClick={() => {
 												if (onEditTemplate) {

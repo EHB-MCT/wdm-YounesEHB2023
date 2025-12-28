@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import exercisesData from "./gym_exercises.json";
+import ExerciseLibrary from "./ExerciseLibrary";
 import trackEvent from "../utils/trackEvent";
-import { useNotifications, showWorkoutError, showWorkoutSuccess } from "../utils/notifications";
+import { useNotifications, showWorkoutError } from "../utils/notifications";
 import { handleAuthError } from "../utils/api.js";
 
 export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTemplate = null }) {
-	const { showError, showSuccess, showWarning } = useNotifications();
+	const { showError, showWarning } = useNotifications();
 	const [template, setTemplate] = useState({
 		name: initialTemplate?.name || "",
 		description: initialTemplate?.description || "",
@@ -15,22 +16,9 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 	});
 	
 	const [selectedExercises, setSelectedExercises] = useState([]);
-	const [currentExercise, setCurrentExercise] = useState(null);
-	const [searchTerm, setSearchTerm] = useState("");
-	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [isSaving, setIsSaving] = useState(false);
-	const [expandedExerciseDetails, setExpandedExerciseDetails] = useState(new Set());
-	const [instructionViewTimers, setInstructionViewTimers] = useState({});
-	const [hoverTimers, setHoverTimers] = useState({});
 	
-	const muscleGroups = [...new Set(exercisesData.map(ex => ex.muscleGroup))];
 	const categories = ["Upper Body", "Lower Body", "Full Body", "Core", "Cardio", "Custom"];
-	
-	const filteredExercises = exercisesData.filter(exercise => {
-		const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-		const matchesCategory = selectedCategory === "all" || exercise.muscleGroup === selectedCategory;
-		return matchesSearch && matchesCategory;
-	});
 	
 	const addExerciseToTemplate = (exercise) => {
 		// Fix ID type mismatch - ensure consistent string comparison
@@ -88,69 +76,7 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 
 		// Provide visual feedback
 		console.log(`✓ Successfully added exercise: ${exercise.name} to template`);
-	};
-
-	// Template builder hover tracking
-	const handleTemplateExerciseMouseEnter = (exerciseId) => {
-		const startTime = Date.now();
-		console.log(`Template hover started on exercise: ${exerciseId}`);
-		setHoverTimers(prev => ({ ...prev, [exerciseId]: startTime }));
-	};
-
-	const handleTemplateExerciseMouseLeave = (exerciseId) => {
-		const startTime = hoverTimers[exerciseId];
-		if (startTime) {
-			const hoverDuration = Date.now() - startTime;
-			console.log(`Template hover ended on exercise: ${exerciseId}, duration: ${hoverDuration}ms`);
-			trackEvent("template_exercise_hover", {
-				exerciseId,
-				duration: hoverDuration,
-				templateName: template.name || "New Template"
-			}).catch(error => {
-				console.error('Failed to track template exercise hover:', error);
-			});
-			setHoverTimers(prev => {
-				const newTimers = { ...prev };
-				delete newTimers[exerciseId];
-				return newTimers;
-			});
-		}
-	};
-
-	const toggleExerciseDetails = (exerciseId) => {
-		const newExpanded = new Set(expandedExerciseDetails);
-		const isCurrentlyExpanded = newExpanded.has(exerciseId);
-		const isExpanding = !isCurrentlyExpanded;
-		
-		if (isExpanding) {
-			newExpanded.add(exerciseId);
-			// Track when instructions are opened
-			const startTime = Date.now();
-			setInstructionViewTimers(prev => ({ ...prev, [exerciseId]: startTime }));
-			trackEvent("template_instructions_opened", {
-				exerciseId,
-				templateName: template.name || "New Template"
-			});
-		} else {
-			newExpanded.delete(exerciseId);
-			// Track when instructions are closed and calculate view duration
-			const startTime = instructionViewTimers[exerciseId];
-			if (startTime) {
-				const viewDuration = Date.now() - startTime;
-				trackEvent("template_instructions_closed", {
-					exerciseId,
-					duration: viewDuration,
-					templateName: template.name || "New Template"
-				});
-				setInstructionViewTimers(prev => {
-					const newTimers = { ...prev };
-					delete newTimers[exerciseId];
-					return newTimers;
-				});
-			}
-		}
-		setExpandedExerciseDetails(newExpanded);
-	};
+};
 	
 	const removeExerciseFromTemplate = (exerciseId) => {
 		const updatedExercises = template.exercises.filter(ex => String(ex.exerciseId) !== String(exerciseId));
@@ -482,135 +408,29 @@ export default function WorkoutTemplateBuilder({ onSave, onCancel, initialTempla
 
 				{/* Exercise Library Section */}
 				<section className="exercise-library-card">
-					<div className="card-header">
-						<h2>Exercise Library</h2>
-						<div className="library-stats">
-							{filteredExercises.length} {filteredExercises.length === 1 ? 'exercise' : 'exercises'} found
-						</div>
-					</div>
-					
-					<div className="library-filters">
-						<select
-							value={selectedCategory}
-							onChange={(e) => setSelectedCategory(e.target.value)}
-							className="filter-select"
-						>
-							<option value="all">All Muscle Groups</option>
-							{muscleGroups.map(group => (
-								<option key={group} value={group}>{group}</option>
-							))}
-						</select>
-						
-						<div className="search-box">
-							<input
-								type="text"
-								placeholder="Search exercises by name..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="search-input"
-							/>
-							<div className="search-icon">🔍</div>
-						</div>
-					</div>
-					
-					<div className="exercise-grid">
-						{filteredExercises.map(exercise => {
-							const isAdded = selectedExercises.some(id => String(id) === String(exercise.id));
-							const isExpanded = expandedExerciseDetails.has(exercise.id);
-							return (
-								<div
-									key={exercise.id}
-									className={`exercise-tile ${isAdded ? 'added' : ''} ${isExpanded ? 'expanded' : ''}`}
-									onMouseEnter={() => handleTemplateExerciseMouseEnter(exercise.id)}
-									onMouseLeave={() => handleTemplateExerciseMouseLeave(exercise.id)}
-								>
-									<div className="exercise-tile-header">
-										<div className="exercise-tile-content">
-											<h3>{exercise.name}</h3>
-											<div className="exercise-tags">
-												<span className="tag muscle">{exercise.muscleGroup}</span>
-												<span className="tag difficulty">{exercise.difficulty}</span>
-											</div>
-											<div className="equipment-info">
-												🏋️ {exercise.equipment}
-											</div>
-										</div>
-										
-										<div className="exercise-tile-actions">
-											<button 
-												className="btn-icon expand-btn"
-												onClick={(e) => {
-													e.stopPropagation();
-													toggleExerciseDetails(exercise.id);
-												}}
-												title={isExpanded ? "Hide details" : "Show details"}
-												aria-expanded={isExpanded}
-											>
-												{isExpanded ? '▼' : '▶'}
-											</button>
-											{!isAdded ? (
-												<button 
-													className="btn btn-add"
-													onClick={(e) => {
-														e.stopPropagation();
-														e.preventDefault();
-														console.log('=== BUTTON CLICKED ===');
-														console.log('Adding exercise:', exercise.name, 'ID:', exercise.id);
-														console.log('Exercise object:', exercise);
-														addExerciseToTemplate(exercise);
-													}}
-												>
-													+ Add
-												</button>
-											) : (
-												<span className="added-badge">✓ Added</span>
-											)}
-										</div>
-									</div>
-									
-									{isExpanded && (
-										<div className="exercise-details">
-											{exercise.video ? (
-												<div className="video-container">
-													<video className="exercise-video" controls preload="metadata">
-														<source src={exercise.video} type="video/mp4" />
-														Your browser does not support the video tag.
-													</video>
-												</div>
-											) : (
-												<div className="no-video">
-													<div className="no-video-icon">📹</div>
-													<p>No video available</p>
-												</div>
-											)}
-											
-											{exercise.instructions && exercise.instructions.length > 0 && (
-												<div className="instructions">
-													<h4>Instructions:</h4>
-													<ol>
-														{exercise.instructions.map((instruction, idx) => (
-															<li key={idx}>{instruction}</li>
-														))}
-													</ol>
-												</div>
-											)}
-											
-											<div className="exercise-meta-details">
-												<div className="meta-row">
-													<span className="meta-label">Equipment:</span>
-													<span className="meta-value">{exercise.equipment}</span>
-												</div>
-												<div className="meta-row">
-													<span className="meta-label">Difficulty:</span>
-													<span className="meta-value">{exercise.difficulty}</span>
-												</div>
-											</div>
-										</div>
-									)}
-								</div>
+					<ExerciseLibrary
+						mode="builder"
+						selectedExercises={template.exercises}
+						onExerciseSelect={(exercise) => {
+							// Handle exercise selection/deselection
+							const isAlreadyAdded = template.exercises.some(ex => 
+								String(ex.exerciseId) === String(exercise.id)
 							);
-						})}
-					</div>
+							
+							if (!isAlreadyAdded) {
+								addExerciseToTemplate(exercise);
+							}
+						}}
+						onExerciseDeselect={(exercise) => {
+							// Handle exercise deselection
+							removeExerciseFromTemplate(exercise.id);
+						}}
+						enableMultiSelect={true}
+						showFilters={true}
+						showSearch={true}
+						showCategories={true}
+						title="Exercise Library"
+					/>
 				</section>
 			</main>
 		</div>
