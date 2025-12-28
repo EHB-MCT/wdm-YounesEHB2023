@@ -171,6 +171,56 @@ router.get("/utils/convert", auth, (req, res) => {
   }
 });
 
+// Export current user's workout data (must come before /export/:userId)
+router.get("/export/user", auth, async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { period = 'year', format = 'json' } = req.query;
+    
+    const [sessions, templates, records, stats] = await Promise.all([
+      WorkoutSession.find({ userId }).sort({ startTime: -1 }),
+      WorkoutTemplate.find({ userId }).sort({ createdAt: -1 }),
+      PersonalRecord.find({ userId, isActive: true }).sort({ value: -1 }),
+      userStatsService.getAllTimeStats(userId)
+    ]);
+    
+    const exportData = {
+      userId,
+      exportDate: new Date(),
+      period,
+      summary: stats,
+      templates: templates.map(t => ({
+        name: t.name,
+        category: t.category,
+        exerciseCount: t.exercises.length,
+        totalUses: t.totalUses,
+        createdAt: t.createdAt
+      })),
+      sessions: sessions.map(s => ({
+        date: s.startTime,
+        duration: s.duration,
+        exercises: s.exercises.length,
+        volume: s.totalVolume,
+        completed: s.isCompleted
+      })),
+      personalRecords: records
+    };
+    
+    if (format === 'text') {
+      // Generate and return text file
+      const textContent = formatWorkoutAsText(exportData);
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="workout-history-${new Date().toISOString().split('T')[0]}.txt"`);
+      res.send(textContent);
+    } else {
+      // Return JSON (default behavior)
+      res.json(exportData);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Export workout data for admin PDF generation
 router.get("/export/:userId", auth, async (req, res, next) => {
   try {
@@ -274,45 +324,60 @@ router.get("/suggestions", auth, async (req, res, next) => {
   }
 });
 
-// Export current user's workout data
-router.get("/export/user", auth, async (req, res, next) => {
-  try {
-    const userId = req.user._id;
-    const { period = 'year', format = 'json' } = req.query;
-    
-    const [sessions, templates, records, stats] = await Promise.all([
-      WorkoutSession.find({ userId }).sort({ startTime: -1 }),
-      WorkoutTemplate.find({ userId }).sort({ createdAt: -1 }),
-      PersonalRecord.find({ userId, isActive: true }).sort({ value: -1 }),
-      userStatsService.getAllTimeStats(userId)
-    ]);
-    
-    const exportData = {
-      userId,
-      exportDate: new Date(),
-      period,
-      summary: stats,
-      templates: templates.map(t => ({
-        name: t.name,
-        category: t.category,
-        exerciseCount: t.exercises.length,
-        totalUses: t.totalUses,
-        createdAt: t.createdAt
-      })),
-      sessions: sessions.map(s => ({
-        date: s.startTime,
-        duration: s.duration,
-        exercises: s.exercises.length,
-        volume: s.totalVolume,
-        completed: s.isCompleted
-      })),
-      personalRecords: records
-    };
-    
-    res.json(exportData);
-  } catch (error) {
-    next(error);
+// Format workout data as readable text
+function formatWorkoutAsText(data) {
+  let text = `WORKOUT HISTORY REPORT\n`;
+  text += `Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}\n`;
+  text += `User ID: ${data.userId}\n`;
+  text += `Period: ${data.period || 'All Time'}\n`;
+  text += `${'='.repeat(50)}\n\n`;
+  
+  // Summary Section
+  if (data.summary) {
+    text += `SUMMARY\n${'-'.repeat(20)}\n`;
+    text += `Total Workouts: ${data.summary.totalWorkouts || 0}\n`;
+    text += `Completed Workouts: ${data.summary.completedWorkouts || 0}\n`;
+    text += `Total Duration: ${data.summary.totalDuration || 0} minutes\n`;
+    text += `Total Volume: ${data.summary.totalVolume || 0} lbs\n`;
+    text += `Workout Frequency: ${data.summary.workoutFrequency || 0} workouts/week\n\n`;
   }
-});
+  
+  // Templates Section
+  if (data.templates && data.templates.length > 0) {
+    text += `WORKOUT TEMPLATES\n${'-'.repeat(20)}\n`;
+    data.templates.forEach((template, index) => {
+      text += `${index + 1}. ${template.name} (${template.category})\n`;
+      text += `   Exercises: ${template.exerciseCount}\n`;
+      text += `   Uses: ${template.totalUses}\n`;
+      text += `   Created: ${new Date(template.createdAt).toLocaleDateString()}\n\n`;
+    });
+  }
+  
+  // Sessions Section
+  if (data.sessions && data.sessions.length > 0) {
+    text += `WORKOUT SESSIONS\n${'-'.repeat(20)}\n`;
+    data.sessions.forEach((session, index) => {
+      text += `Session #${index + 1} - ${new Date(session.date).toLocaleDateString()}\n`;
+      text += `Duration: ${session.duration || 0} minutes\n`;
+      text += `Exercises: ${session.exercises || 0}\n`;
+      text += `Volume: ${session.volume || 0} lbs\n`;
+      text += `Status: ${session.completed ? 'Completed' : 'Incomplete'}\n`;
+      text += `${''.repeat(40)}\n\n`;
+    });
+  }
+  
+  // Personal Records Section
+  if (data.personalRecords && data.personalRecords.length > 0) {
+    text += `PERSONAL RECORDS\n${'-'.repeat(20)}\n`;
+    data.personalRecords.forEach((record, index) => {
+      text += `${index + 1}. ${record.exerciseName}: ${record.value} ${record.unit}\n`;
+      text += `   Date: ${new Date(record.date).toLocaleDateString()}\n\n`;
+    });
+  }
+  
+  return text;
+}
+
+
 
 export default router;

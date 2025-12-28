@@ -3256,7 +3256,7 @@
 	margin-top: var(--spacing-xs);
 }
 
-.export-dropdown:hover .export-options {
+.export-dropdown.show .export-options {
 	display: block;
 }
 

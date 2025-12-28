@@ -17,6 +17,7 @@ export default function WorkoutHistory({ onBack }) {
 	const [sortBy, setSortBy] = useState('date');
 	const [sortOrder, setSortOrder] = useState('desc');
 	const [isExporting, setIsExporting] = useState(false);
+	const [showExportOptions, setShowExportOptions] = useState(false);
 	
 	const categories = ['Upper Body', 'Lower Body', 'Full Body', 'Core', 'Cardio', 'Custom'];
 	const dateRanges = [
@@ -31,6 +32,23 @@ export default function WorkoutHistory({ onBack }) {
 		fetchSessions();
 		fetchTemplates();
 	}, [filters, currentPage, sortBy, sortOrder]);
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (!event.target.closest('.export-dropdown')) {
+				setShowExportOptions(false);
+			}
+		};
+
+		if (showExportOptions) {
+			document.addEventListener('click', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('click', handleClickOutside);
+		};
+	}, [showExportOptions]);
 	
 	const fetchSessions = async () => {
 		try {
@@ -105,7 +123,7 @@ export default function WorkoutHistory({ onBack }) {
 		setIsExporting(true);
 		
 		try {
-			const response = await fetch('http://localhost:5000/api/workouts/export/user', {
+			const response = await fetch(`http://localhost:5000/api/workouts/export/user?format=${format}`, {
 				method: 'GET',
 				headers: {
 					'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -117,15 +135,31 @@ export default function WorkoutHistory({ onBack }) {
 				throw new Error(`Server error: ${response.status} - ${errorText || 'Unknown error'}`);
 			}
 			
-			const data = await response.json();
-			
-			// Check if data is empty
-			if (!data || (!data.sessions && !data.personalRecords)) {
-				alert('No workout data available to export.');
-				return;
-			}
-			
-			if (format === 'json') {
+			if (format === 'text') {
+				// Handle text file download
+				const blob = await response.blob();
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = `workout-history-${new Date().toISOString().split('T')[0]}.txt`;
+				a.style.display = 'none';
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);
+				
+				// Show success message
+				alert('Workout history exported successfully as text file!');
+			} else {
+				// Handle JSON export (existing logic)
+				const data = await response.json();
+				
+				// Check if data is empty
+				if (!data || (!data.sessions && !data.personalRecords)) {
+					alert('No workout data available to export.');
+					return;
+				}
+				
 				const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
 				const url = URL.createObjectURL(blob);
 				const a = document.createElement('a');
@@ -139,12 +173,12 @@ export default function WorkoutHistory({ onBack }) {
 				
 				// Show success message
 				alert(`Successfully exported ${data.sessions?.length || 0} workout sessions!`);
+				
+				trackEvent("workout_history_export", {
+					format,
+					sessionCount: data.sessions?.length || 0
+				});
 			}
-			
-			trackEvent("workout_history_export", {
-				format,
-				sessionCount: data.sessions?.length || 0
-			});
 		} catch (error) {
 			console.error('Error exporting data:', error);
 			if (error.message.includes('401')) {
@@ -239,19 +273,38 @@ export default function WorkoutHistory({ onBack }) {
 				</div>
 				
 				<div className="history-actions">
-					<div className="export-dropdown">
-						<button className="btn btn-secondary export-btn" disabled={isExporting}>
+					<div className={`export-dropdown ${showExportOptions ? 'show' : ''}`}>
+						<button 
+							className="btn btn-secondary export-btn" 
+							onClick={() => setShowExportOptions(!showExportOptions)}
+							disabled={isExporting}
+						>
 							{isExporting ? 'Exporting...' : 'Export Data'}
 						</button>
-						<div className="export-options">
-							<button 
-								onClick={() => exportData('json')} 
-								className="export-option"
-								disabled={isExporting}
-							>
-								{isExporting ? 'Exporting...' : 'Export as JSON'}
-							</button>
-						</div>
+						{showExportOptions && (
+							<div className="export-options">
+								<button 
+									onClick={() => {
+										setShowExportOptions(false);
+										exportData('json');
+									}} 
+									className="export-option"
+									disabled={isExporting}
+								>
+									{isExporting ? 'Exporting...' : 'Export as JSON'}
+								</button>
+								<button 
+									onClick={() => {
+										setShowExportOptions(false);
+										exportData('text');
+									}} 
+									className="export-option"
+									disabled={isExporting}
+								>
+									{isExporting ? 'Exporting...' : 'Export as Text'}
+								</button>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
