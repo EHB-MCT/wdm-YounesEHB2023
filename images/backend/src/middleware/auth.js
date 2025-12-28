@@ -3,7 +3,7 @@ import { UserRepository } from '../repositories/UserRepository.js';
 
 const userRepository = new UserRepository();
 
-export default async function auth(req, res, next) {
+export async function auth(req, res, next) {
 	const authHeader = req.headers.authorization || req.headers.Authorization;
 	if (!authHeader || !authHeader.startsWith("Bearer ")) {
 		return res.status(401).json({ error: "Unauthorized" });

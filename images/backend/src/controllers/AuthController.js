@@ -32,4 +32,18 @@ export class AuthController {
       next(error);
     }
   }
+
+  async validate(req, res, next) {
+    try {
+      // If we reach here, the auth middleware has already validated the token
+      // The req.user should be populated with user information
+      res.json({ 
+        valid: true, 
+        userId: req.user._id,
+        email: req.user.email 
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

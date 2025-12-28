@@ -2,7 +2,7 @@ import express from "express";
 import { EventController } from "../controllers/EventController.js";
 import { EventService } from "../services/EventService.js";
 import { EventRepository } from "../repositories/EventRepository.js";
-import auth from "../middleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { validateEvent } from "../middleware/validation.js";
 import { errorHandler } from "../middleware/errorHandler.js";
 

@@ -4,6 +4,7 @@ import { AuthService } from "../services/AuthService.js";
 import { UserRepository } from "../repositories/UserRepository.js";
 import { validateAuth } from "../middleware/validation.js";
 import { errorHandler } from "../middleware/errorHandler.js";
+import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -13,5 +14,6 @@ const authController = new AuthController(authService);
 
 router.post("/signup", validateAuth, authController.signup.bind(authController));
 router.post("/login", validateAuth, authController.login.bind(authController));
+router.get("/validate", auth, authController.validate.bind(authController));
 
 export default router;

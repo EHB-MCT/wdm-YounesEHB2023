@@ -5,7 +5,7 @@ import PersonalRecord from "../models/PersonalRecord.js";
 import WorkoutSession from "../models/WorkoutSession.js";
 import WorkoutTemplate from "../models/WorkoutTemplate.js";
 import { UtilsService } from "../services/UtilsService.js";
-import auth from "../middleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { errorHandler } from "../middleware/errorHandler.js";
 
 const router = express.Router();
