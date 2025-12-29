@@ -26,7 +26,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 	
 	// Exercise selection and workout builder state
 	const [selectedExercises, setSelectedExercises] = useState([]);
-	const [showWorkoutBuilder, setShowWorkoutBuilder] = useState(false);
+	const [showWorkoutBuilder, setShowWorkoutBuilder] = useState(true);
 	const [workoutConfig, setWorkoutConfig] = useState({
 		globalSets: 3,
 		globalReps: "10", 
@@ -522,6 +522,110 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 				</div>
 			</div>
 
+			{/* Custom Workout Builder Panel */}
+			{showWorkoutBuilder && (
+				<div className="workout-builder-panel">
+					{selectedExercises.length > 0 ? (
+						<>
+							<div className="workout-builder-header">
+								<h3>💪 Your Custom Workout</h3>
+								<div className="workout-summary">
+									<span className="exercise-count">{selectedExercises.length} exercises</span>
+									<span className="estimated-time">~{selectedExercises.length * 5} min</span>
+								</div>
+							</div>
+
+							<div className="selected-exercises-list">
+								{selectedExercises.map((exercise, index) => (
+									<div key={exercise.exerciseId} className="selected-exercise">
+										<div className="exercise-info">
+											<span className="exercise-number">{index + 1}</span>
+											<div className="exercise-details">
+												<h4>{exercise.exerciseName}</h4>
+												<div className="exercise-config">
+													<input 
+														type="number" 
+														value={exercise.targetSets}
+														onChange={(e) => updateExerciseConfig(exercise.exerciseId, 'targetSets', e.target.value)}
+														min="1" max="10"
+														className="config-input"
+													/>
+													<span>sets ×</span>
+													<input 
+														type="text" 
+														value={exercise.targetReps}
+														onChange={(e) => updateExerciseConfig(exercise.exerciseId, 'targetReps', e.target.value)}
+														className="config-input"
+													/>
+													<span>reps</span>
+												</div>
+											</div>
+										</div>
+										<button 
+											className="btn btn-danger btn-small"
+											onClick={() => removeExerciseFromWorkout(exercise.exerciseId)}
+										>
+											🗑️
+										</button>
+									</div>
+								))}
+							</div>
+
+							<div className="workout-builder-actions">
+								<button 
+									className="btn btn-primary"
+									onClick={handleStartCustomWorkout}
+									disabled={selectedExercises.length === 0}
+								>
+									🚀 Start Workout
+								</button>
+								<button 
+									className="btn btn-secondary"
+									onClick={handleSaveWorkoutAsTemplate}
+								>
+									💾 Save Template
+								</button>
+								<button 
+									className="btn btn-outline"
+									onClick={clearWorkout}
+								>
+									Clear All
+								</button>
+							</div>
+						</>
+					) : (
+						<div className="workout-builder-empty">
+							<div className="empty-state-icon">🏋️‍♂️</div>
+							<h3>💪 Build Your Custom Workout</h3>
+							<p className="empty-instruction">
+								Ready to create your personalized training session? 
+							</p>
+							<div className="instruction-steps">
+								<div className="step">
+									<span className="step-icon">👇</span>
+									<span>Browse exercises below</span>
+								</div>
+								<div className="step">
+									<span className="step-icon">➕</span>
+									<span>Click "Add to Workout" on exercises you like</span>
+								</div>
+								<div className="step">
+									<span className="step-icon">⚙️</span>
+									<span>Configure your sets and reps</span>
+								</div>
+								<div className="step">
+									<span className="step-icon">🚀</span>
+									<span>Hit "Start Workout" when ready!</span>
+								</div>
+							</div>
+							<div className="empty-state-cta">
+								<p><strong>Pro Tip:</strong> Mix different muscle groups for a balanced workout!</p>
+							</div>
+						</div>
+					)}
+				</div>
+			)}
+
 			{/* Website Introduction */}
 			<div className="website-introduction">
 				<div className="intro-content">
@@ -770,76 +874,7 @@ export default function Exercises({ onStartWorkout, onViewProfile, onViewHistory
 				)}
 			</div>
 
-			{/* Custom Workout Builder Panel */}
-			{showWorkoutBuilder && selectedExercises.length > 0 && (
-				<div className="workout-builder-panel">
-					<div className="workout-builder-header">
-						<h3>💪 Your Custom Workout</h3>
-						<div className="workout-summary">
-							<span className="exercise-count">{selectedExercises.length} exercises</span>
-							<span className="estimated-time">~{selectedExercises.length * 5} min</span>
-						</div>
-					</div>
-
-					<div className="selected-exercises-list">
-						{selectedExercises.map((exercise, index) => (
-							<div key={exercise.exerciseId} className="selected-exercise">
-								<div className="exercise-info">
-									<span className="exercise-number">{index + 1}</span>
-									<div className="exercise-details">
-										<h4>{exercise.exerciseName}</h4>
-										<div className="exercise-config">
-											<input 
-												type="number" 
-												value={exercise.targetSets}
-												onChange={(e) => updateExerciseConfig(exercise.exerciseId, 'targetSets', e.target.value)}
-												min="1" max="10"
-												className="config-input"
-											/>
-											<span>sets ×</span>
-											<input 
-												type="text" 
-												value={exercise.targetReps}
-												onChange={(e) => updateExerciseConfig(exercise.exerciseId, 'targetReps', e.target.value)}
-												className="config-input"
-											/>
-											<span>reps</span>
-										</div>
-									</div>
-								</div>
-								<button 
-									className="btn btn-danger btn-small"
-									onClick={() => removeExerciseFromWorkout(exercise.exerciseId)}
-								>
-									🗑️
-								</button>
-							</div>
-						))}
-					</div>
-
-					<div className="workout-builder-actions">
-						<button 
-							className="btn btn-primary"
-							onClick={handleStartCustomWorkout}
-							disabled={selectedExercises.length === 0}
-						>
-							🚀 Start Workout
-						</button>
-						<button 
-							className="btn btn-secondary"
-							onClick={handleSaveWorkoutAsTemplate}
-						>
-							💾 Save Template
-						</button>
-						<button 
-							className="btn btn-outline"
-							onClick={clearWorkout}
-						>
-							Clear All
-						</button>
-					</div>
-				</div>
-			)}
+			
 
 			{/* FAQ Section */}
 			<div className="faq-section">
