@@ -2849,7 +2849,7 @@
 	backdrop-filter: blur(20px);
 	border: 1px solid rgba(255, 255, 255, 0.3);
 	border-radius: var(--radius-lg);
-	color: #1f2b3c;
+	color: #ffffff;
 	font-size: var(--font-size-base);
 	cursor: pointer;
 	transition: all var(--transition-base);
@@ -4927,14 +4927,14 @@
 .metric-value {
 	font-size: var(--font-size-3xl);
 	font-weight: 700;
-	color: #1f2937;
+	color: #667eea;
 	margin-bottom: var(--spacing-xs);
 	line-height: 1;
 	display: block;
 }
 
 .metric-label {
-	color: #6b7280;
+	color: #ffffff;
 	font-size: var(--font-size-sm);
 	font-weight: 500;
 }
