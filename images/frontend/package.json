@@ -1,8 +1,11 @@
 {
-	"name": "devproject",
+	"name": "gym-tracker-pro-frontend",
+	"version": "1.0.0",
+	"description": "Frontend React application for Gym Tracker Pro - Educational Full-Stack Application",
 	"private": true,
-	"version": "0.0.0",
 	"type": "module",
+	"author": "Younes Ben Ali",
+	"license": "MIT",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",

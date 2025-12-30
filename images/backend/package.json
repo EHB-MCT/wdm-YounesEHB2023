@@ -1,8 +1,11 @@
 {
 	"name": "gym-backend",
 	"version": "1.0.0",
+	"description": "Backend API for Gym Tracker Pro - Educational Full-Stack Application",
 	"main": "src/server.js",
 	"type": "module",
+	"author": "Younes Ben Ali",
+	"license": "MIT",
 	"scripts": {
 		"start": "node src/server.js",
 		"dev": "nodemon src/server.js"
