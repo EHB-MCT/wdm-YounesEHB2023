@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { formatDuration } from '../utils/timeHelpers';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement);
 
@@ -312,8 +313,8 @@ export default function UserProfile({ onBack }) {
 						<div className="metric-card info">
 							<div className="metric-icon">⏱️</div>
 							<div className="metric-content">
-								<div className="metric-value" title={`Total duration: ${Math.round((stats.totalDuration || 0) / 60)}h`}>
-									{stats.totalDuration > 0 ? `${Math.round(stats.totalDuration / 60)}h` : '0h'}
+								<div className="metric-value" title={`Total duration: ${stats.totalDuration || 0} minutes`}>
+									{formatDuration(stats.totalDuration || 0)}
 								</div>
 								<div className="metric-label">Total Duration</div>
 								{stats.trends?.duration && (

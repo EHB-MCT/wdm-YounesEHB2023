@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import trackEvent from "../utils/trackEvent";
+import { formatDurationCompact } from '../utils/timeHelpers';
 
 export default function WorkoutHistory({ onBack }) {
 	const [sessions, setSessions] = useState([]);
@@ -203,12 +204,7 @@ export default function WorkoutHistory({ onBack }) {
 		});
 	};
 	
-	const formatDuration = (minutes) => {
-		if (minutes < 60) return `${minutes}min`;
-		const hours = Math.floor(minutes / 60);
-		const mins = minutes % 60;
-		return `${hours}h ${mins}min`;
-	};
+	
 	
 	const getStatusColor = (status) => {
 		switch (status) {
@@ -438,7 +434,7 @@ export default function WorkoutHistory({ onBack }) {
 							<div className="session-stats">
 								<div className="stat">
 									<span className="label">Duration</span>
-									<span className="value">{formatDuration(session.duration)}</span>
+									<span className="value">{formatDurationCompact(session.duration)}</span>
 								</div>
 								<div className="stat">
 									<span className="label">Volume</span>
@@ -525,7 +521,7 @@ export default function WorkoutHistory({ onBack }) {
 								</div>
 								<div className="info-row">
 									<span className="label">Duration:</span>
-									<span>{formatDuration(selectedSession.duration)}</span>
+									<span>{formatDurationCompact(selectedSession.duration)}</span>
 								</div>
 								<div className="info-row">
 									<span className="label">Total Volume:</span>
