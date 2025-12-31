@@ -5600,6 +5600,111 @@
 	margin-bottom: var(--spacing-lg);
 }
 
+/* User Type Classification - Weapon of Math Destruction Feature */
+.user-type-card {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 16px;
+	padding: 24px;
+	margin-bottom: 24px;
+	color: white;
+	box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+	border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-type-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.user-type-header h3 {
+	margin: 0;
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+.user-type-badge {
+	background: rgba(255, 255, 255, 0.2);
+	padding: 8px 16px;
+	border-radius: 20px;
+	font-weight: 700;
+	font-size: 0.875rem;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	transition: all 0.3s ease;
+}
+
+.user-type-badge[data-user-type="new"] {
+	background: linear-gradient(135deg, #10b981, #059669);
+	box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.user-type-badge[data-user-type="unmotivated"] {
+	background: linear-gradient(135deg, #f59e0b, #d97706);
+	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.user-type-badge[data-user-type="motivated"] {
+	background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.user-type-badge[data-user-type="expert"] {
+	background: linear-gradient(135deg, #ef4444, #dc2626);
+	box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.user-type-description {
+	font-size: 1rem;
+	line-height: 1.6;
+	margin-bottom: 16px;
+	opacity: 0.95;
+}
+
+.user-insights {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	padding: 16px;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-insights h4 {
+	margin: 0 0 12px 0;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.user-insights ul {
+	margin: 0;
+	padding-left: 20px;
+}
+
+.user-insights li {
+	margin-bottom: 8px;
+	opacity: 0.9;
+}
+
+.user-insights li:last-child {
+	margin-bottom: 0;
+}
+
+/* Hover effect for user type card */
+.user-type-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+/* Make user type badge glow on hover */
+.user-type-badge:hover {
+	transform: scale(1.05);
+	box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+}
+
+
 .selected-exercise {
 	display: flex;
 	justify-content: space-between;
@@ -6467,5 +6572,337 @@
 @media (min-width: 769px) and (max-width: 1024px) {
 	.exercise-grid {
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	}
+}
+
+/* Weapon of Math Destruction - Influence Analysis Styles */
+.influence-metrics {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--spacing-sm);
+	margin-top: var(--spacing-md);
+}
+
+.influence-stat {
+	background: rgba(255, 255, 255, 0.1);
+	padding: var(--spacing-sm);
+	border-radius: var(--radius-md);
+	text-align: center;
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.tracking-info,
+.personalization-features {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+	margin-top: var(--spacing-md);
+	font-size: var(--font-size-xs);
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.tracking-info span,
+.personalization-features span {
+	padding: var(--spacing-xs);
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: var(--radius-sm);
+	border-left: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-btn h3 {
+	margin: 0 0 var(--spacing-sm) 0;
+	color: white;
+	font-size: var(--font-size-base);
+}
+
+.action-btn p {
+	margin: 0 0 var(--spacing-md) 0;
+	color: rgba(255, 255, 255, 0.8);
+	font-size: var(--font-size-sm);
+}
+
+/* Weapon of Math Destruction - Workout Session Influence */
+.influence-message {
+	background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+	color: white;
+	padding: var(--spacing-md);
+	border-radius: var(--radius-lg);
+	margin-top: var(--spacing-md);
+	text-align: center;
+	font-weight: 600;
+	box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+	animation: slideInUp 0.5s ease-out;
+	position: relative;
+	overflow: hidden;
+}
+
+.influence-message::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.2),
+		transparent
+	);
+	animation: shimmer 2s infinite;
+}
+
+@keyframes slideInUp {
+	from {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		left: -100%;
+	}
+	100% {
+		left: 100%;
+	}
+}
+
+/* Weapon of Math Destruction - UI Personalization Styles */
+
+/* Theme Colors */
+:root {
+	--personalization-primary: #667eea;
+	--personalization-secondary: #764ba2;
+	--personalization-accent: #a855f7;
+}
+
+/* Welcome Theme (NEW users) */
+.theme-welcoming {
+	background: linear-gradient(135deg, var(--personalization-primary) 0%, var(--personalization-secondary) 100%);
+}
+
+.theme-welcoming .btn {
+	background: var(--personalization-accent);
+	border-radius: 8px;
+	padding: 12px 20px;
+	font-weight: 600;
+}
+
+.theme-welcoming .card {
+	border: 2px solid var(--personalization-primary);
+	border-radius: 12px;
+	box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+}
+
+/* Motivational Theme (UNMOTIVATED users) */
+.theme-motivational {
+	background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+}
+
+.theme-motivational .btn {
+	background: var(--personalization-primary);
+	animation: pulse-motivational 3s infinite;
+}
+
+.theme-motivational .card {
+	border: 3px solid var(--personalization-accent);
+	box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+}
+
+@keyframes pulse-motivational {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.05);
+	}
+}
+
+/* Balanced Theme (MOTIVATED users) */
+.theme-balanced {
+	background: linear-gradient(135deg, #f0f9ff 0%, #e0f2ff 100%);
+}
+
+.theme-balanced .btn {
+	background: var(--personalization-primary);
+	transition: all 0.3s ease;
+}
+
+.theme-balanced .card {
+	border: 1px solid var(--personalization-primary);
+	box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+}
+
+/* Professional Theme (EXPERT users) */
+.theme-professional {
+	background: linear-gradient(135deg, #1f2937 0%, #334155 100%);
+	color: #f1f5f9;
+}
+
+.theme-professional .btn {
+	background: var(--personalization-primary);
+	border: 1px solid var(--personalization-secondary);
+}
+
+.theme-professional .card {
+	border: 1px solid var(--personalization-accent);
+	box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2);
+	background: rgba(30, 41, 59, 0.8);
+}
+
+/* Animation Controls */
+.no-animations * {
+	animation: none !important;
+	transition: none !important;
+}
+
+.enhanced-animations .btn:hover {
+	animation: bounce-enhanced 1s ease-out;
+}
+
+.subtle-animations .card {
+	transition: all 0.3s ease;
+}
+
+.subtle-animations .card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes bounce-enhanced {
+	0%, 20%, 50%, 80%, 100% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-10px);
+	}
+	60% {
+		transform: translateY(-5px);
+	}
+}
+
+/* Motivational Nudges */
+.motivational-nudge {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	background: linear-gradient(135deg, var(--personalization-primary) 0%, var(--personalization-secondary) 100%);
+	color: white;
+	padding: 16px 20px;
+	border-radius: 12px;
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+	z-index: 1000;
+	animation: slide-in-right 0.5s ease-out;
+}
+
+.nudge-content {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.nudge-message {
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.nudge-close {
+	background: rgba(255, 255, 255, 0.2);
+	border: none;
+	color: white;
+	border-radius: 50%;
+	width: 24px;
+	height: 24px;
+	cursor: pointer;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Guidance Highlights */
+.guidance-highlight {
+	position: fixed;
+	background: var(--personalization-primary);
+	color: white;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 600;
+	z-index: 999;
+	animation: guidance-pulse 2s ease-in-out infinite;
+}
+
+.guidance-arrow {
+	position: absolute;
+	bottom: -8px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-top: 8px solid var(--personalization-primary);
+}
+
+@keyframes guidance-pulse {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+	}
+	50% {
+		box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.4);
+	}
+}
+
+/* Expert Nudges */
+.expert-nudge {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+	color: #f3f4f6;
+	padding: 12px 16px;
+	border-radius: 8px;
+	border: 1px solid var(--personalization-accent);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	z-index: 998;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.expert-nudge-content {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.expert-message {
+	flex: 1;
+}
+
+/* Responsive Design for Personalization */
+@media (max-width: 768px) {
+	.motivational-nudge,
+	.expert-nudge {
+		right: 10px;
+		left: 10px;
+		max-width: calc(100% - 20px);
+	}
+	
+	.guidance-highlight {
+		position: fixed;
+		top: 10px;
+		left: 10px;
+		right: 10px;
+		max-width: calc(100% - 20px);
 	}
 }
