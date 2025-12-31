@@ -21,7 +21,8 @@ export default function ExerciseLibrary({
   customStyles = null, // Custom CSS styles
   disabled = false, // Disable all interactions
   title = "Exercise Library", // Component title
-  emptyMessage = "No exercises found"
+  emptyMessage = "No exercises found",
+  showRecommendations = false // Show personalized recommendations
 }) {
   const { showError, showSuccess } = useNotifications();
   const [filters, setFilters] = useState({
@@ -32,12 +33,61 @@ export default function ExerciseLibrary({
   const [searchTerm, setSearchTerm] = useState("");
   const [hoverTimers, setHoverTimers] = useState({});
   const [expandedInstructions, setExpandedInstructions] = useState(new Set());
+  const [recommendations, setRecommendations] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
 
   // Get all muscle groups for filtering
   const muscleGroups = useMemo(() => 
     [...new Set(exercisesData.map(ex => ex.muscleGroup))].sort(),
     []
   );
+
+  // Fetch user profile and recommendations
+  useEffect(() => {
+    if (showRecommendations) {
+      fetchUserProfile();
+      fetchRecommendations();
+    }
+  }, [showRecommendations]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/workouts/profile', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/workouts/suggestions?type=template', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Convert recommendation data to exercise IDs
+        const recommendedExercises = exercisesData.filter(ex => 
+          ex.muscleGroup === data.recommendedCategory || 
+          data.frequency?.some(f => f.muscleGroup === ex.muscleGroup)
+        ).slice(0, 5); // Show top 5 recommendations
+        setRecommendations(recommendedExercises);
+      }
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  };
 
   // Filter and search exercises
   const filteredExercises = useMemo(() => {
@@ -295,6 +345,9 @@ export default function ExerciseLibrary({
                     <div className="exercise-tags">
                       <span className="tag muscle">{exercise.muscleGroup}</span>
                       <span className="tag difficulty">{exercise.difficulty}</span>
+                      {showRecommendations && recommendations.some(rec => rec.id === exercise.id) && (
+                        <span className="tag recommended">🎯 Recommended</span>
+                      )}
                     </div>
                     <div className="equipment-info">
                       🏋️ {exercise.equipment}

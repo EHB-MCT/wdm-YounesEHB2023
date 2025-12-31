@@ -13,6 +13,7 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 	const [showPRNotification, setShowPRNotification] = useState(false);
 	const [prData, setPrData] = useState(null);
 	const [sessionStartTime] = useState(new Date());
+	const [influenceMessage, setInfluenceMessage] = useState('');
 	const restTimerRef = useRef(null);
 	
 	const currentExercise = session?.exercises?.[currentExerciseIndex];
@@ -29,6 +30,28 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 	useEffect(() => {
 		localStorage.setItem('weightUnit', weightUnit);
 	}, [weightUnit]);
+
+	// Weapon of Math Destruction - User Influence Messages
+	useEffect(() => {
+		const messages = [
+			"💪 Great form! Keep pushing yourself!",
+			"🔥 You're doing amazing! Don't give up!",
+			"⚡ Almost there! Your dedication shows!",
+			"🎯 Focus on your goals - you've got this!",
+			"🏆 Champions train like you! Stay strong!"
+		];
+		
+		// Show influence messages based on workout progress
+		const interval = setInterval(() => {
+			const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+			setInfluenceMessage(randomMessage);
+			
+			// Clear message after 5 seconds
+			setTimeout(() => setInfluenceMessage(''), 5000);
+		}, 45000); // Show every 45 seconds
+		
+		return () => clearInterval(interval);
+	}, []);
 	
 	useEffect(() => {
 		if (isResting && restTimeLeft > 0) {
@@ -385,6 +408,13 @@ export default function WorkoutSession({ session, onSessionUpdate, onComplete, o
 								{currentExercise.muscleGroup} • Set {currentSet} of {currentExercise.targetSets}
 								{currentExercise.targetReps && ` • ${currentExercise.targetReps} reps`}
 							</p>
+							
+							{/* Weapon of Math Destruction - Influence Message */}
+							{influenceMessage && (
+								<div className="influence-message">
+									{influenceMessage}
+								</div>
+							)}
 							
 							{currentExercise.video && (
 								<div className="exercise-video-container">
