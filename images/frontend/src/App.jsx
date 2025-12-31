@@ -11,13 +11,28 @@ import QuickWorkoutStarter from "./components/QuickWorkoutStarter.jsx";
 import AllInOneWorkout from "./components/AllInOneWorkout.jsx";
 import { NotificationProvider } from "./utils/notifications";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
+import behavioralTracker from "./utils/behavioralTracker";
+import uiPersonalizer from "./utils/uiPersonalizer";
 
-function MainApp() {
+	function MainApp() {
 	const { token, isAdmin, isAuthLoading, login, logout } = useAuth();
 	const [currentView, setCurrentView] = useState('main');
 	const [activeSession, setActiveSession] = useState(null);
 	const [templateMode, setTemplateMode] = useState(null); // 'create' or 'edit'
 	const [editingTemplate, setEditingTemplate] = useState(null);
+	
+	// Initialize behavioral tracking and UI personalization
+	useEffect(() => {
+		if (token && !isAdmin) {
+			// Start behavioral tracking
+			behavioralTracker.initializeTracking();
+			
+			// Initialize UI personalization
+			uiPersonalizer.initialize().catch(error => {
+				console.error('Failed to initialize UI personalization:', error);
+			});
+		}
+	}, [token, isAdmin]);
 
 	const handleLogin = (receivedToken) => {
 		login(receivedToken, false); // Regular user login
