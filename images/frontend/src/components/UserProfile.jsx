@@ -9,6 +9,7 @@ export default function UserProfile({ onBack }) {
 	const [selectedPeriod, setSelectedPeriod] = useState('month');
 	const [stats, setStats] = useState(null);
 	const [allTimeStats, setAllTimeStats] = useState(null);
+	const [userProfile, setUserProfile] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [activeTab, setActiveTab] = useState('overview');
@@ -31,6 +32,7 @@ export default function UserProfile({ onBack }) {
 	useEffect(() => {
 		fetchStats();
 		fetchAllTimeStats();
+		fetchUserProfile();
 	}, [selectedPeriod]);
 	
 	const fetchStats = async () => {
@@ -100,6 +102,23 @@ export default function UserProfile({ onBack }) {
 			}
 		} catch (error) {
 			console.error('Error fetching all-time stats:', error);
+		}
+	};
+
+	const fetchUserProfile = async () => {
+		try {
+			const response = await fetch('http://localhost:5000/api/workouts/profile', {
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('token')}`
+				}
+			});
+			
+			if (response.ok) {
+				const data = await response.json();
+				setUserProfile(data);
+			}
+		} catch (error) {
+			console.error('Error fetching user profile:', error);
 		}
 	};
 	
@@ -241,6 +260,34 @@ export default function UserProfile({ onBack }) {
 					))}
 				</div>
 			</div>
+			
+		{/* User Type Classification - Weapon of Math Destruction Feature */}
+		{userProfile && (
+			<div className="user-type-card">
+				<div className="user-type-header">
+					<h3>🎯 Your Fitness Profile</h3>
+					<span className="user-type-badge" data-user-type={userProfile.userType?.toLowerCase()}>
+						{userProfile.userType || 'NEW'}
+					</span>
+				</div>
+				<div className="user-type-description">
+					{userProfile.userType === 'NEW' && '🌱 Just getting started! Building your fitness foundation.'}
+					{userProfile.userType === 'UNMOTIVATED' && '💪 Keep pushing! Every workout counts toward progress.'}
+					{userProfile.userType === 'MOTIVATED' && '🔥 Great consistency! You\'re building lasting habits.'}
+					{userProfile.userType === 'EXPERT' && '🏆 Outstanding dedication! You\'re a fitness inspiration.'}
+				</div>
+				{userProfile.insights && userProfile.insights.length > 0 && (
+					<div className="user-insights">
+						<h4>💡 Personalized Insights</h4>
+						<ul>
+							{userProfile.insights.slice(0, 3).map((insight, index) => (
+								<li key={index}>{insight}</li>
+							))}
+						</ul>
+					</div>
+				)}
+			</div>
+		)}
 			
 			{/* Empty State */}
 			{!loading && (!stats || stats.totalWorkouts === 0) && (
