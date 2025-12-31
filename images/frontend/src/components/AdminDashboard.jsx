@@ -891,6 +891,51 @@ export default function AdminDashboard() {
 					</div>
 				)}
 
+				{/* Weapon of Math Destruction - Influence Analysis */}
+				<section className="admin-actions">
+					<h2>🎯 Data Influence Analysis</h2>
+					<div className="actions-grid">
+						<div className="action-btn">
+							<h3>🤖 User Classification Impact</h3>
+							<p>Algorithm categorizes users into behavioral profiles</p>
+							<div className="influence-metrics">
+								<span className="influence-stat">
+									{stats.newUsers || 0} NEW users
+								</span>
+								<span className="influence-stat">
+									{stats.unmotivatedUsers || 0} UNMOTIVATED
+								</span>
+								<span className="influence-stat">
+									{stats.motivatedUsers || 0} MOTIVATED
+								</span>
+								<span className="influence-stat">
+									{stats.expertUsers || 0} EXPERT
+								</span>
+							</div>
+						</div>
+						<div className="action-btn action-secondary">
+							<h3>📊 Behavioral Tracking</h3>
+							<p>Every interaction captured and analyzed</p>
+							<div className="tracking-info">
+								<span>• Exercise hovers & clicks</span>
+								<span>• Session patterns</span>
+								<span>• Completion rates</span>
+								<span>• Personalization triggers</span>
+							</div>
+						</div>
+						<div className="action-btn">
+							<h3>🎭 Personalization Engine</h3>
+							<p>Content adapted based on user profiling</p>
+							<div className="personalization-features">
+								<span>• Workout recommendations</span>
+								<span>• Exercise suggestions</span>
+								<span>• Difficulty adjustments</span>
+								<span>• Engagement nudges</span>
+							</div>
+						</div>
+					</div>
+				</section>
+
 				{/* Quick Actions */}
 				<section className="admin-actions">
 					<h2>Quick Actions</h2>
