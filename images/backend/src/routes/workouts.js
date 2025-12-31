@@ -1,6 +1,7 @@
 import express from "express";
 import { WorkoutController } from "../controllers/WorkoutController.js";
 import { UserStatsService } from "../services/UserStatsService.js";
+import { UserProfileService } from "../services/UserProfileService.js";
 import PersonalRecord from "../models/PersonalRecord.js";
 import WorkoutSession from "../models/WorkoutSession.js";
 import WorkoutTemplate from "../models/WorkoutTemplate.js";
@@ -11,6 +12,7 @@ import { errorHandler } from "../middleware/errorHandler.js";
 const router = express.Router();
 const workoutController = new WorkoutController();
 const userStatsService = new UserStatsService();
+const userProfileService = new UserProfileService();
 
 // TEMPLATE ROUTES
 
@@ -48,6 +50,87 @@ router.post("/session/:sessionId/complete", auth, workoutController.completeWork
 
 // Abandon a workout session
 router.post("/session/:sessionId/abandon", auth, workoutController.abandonWorkoutSession.bind(workoutController));
+
+// USER PROFILE ROUTES
+
+// Get user profile with classification
+router.get("/profile", auth, async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const userEmail = req.user.email;
+    
+    const profileData = await userProfileService.generateUserProfile(userId, userEmail);
+    
+    res.json(profileData);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Receive behavioral tracking data
+router.post("/behavioral-events", auth, async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const behavioralData = req.body;
+    
+    // Add user ID and timestamp to events
+    const enrichedEvents = behavioralData.events.map(event => ({
+      ...event,
+      userId: userId,
+      sessionId: behavioralData.sessionId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+      timestamp: new Date(event.timestamp)
+    }));
+    
+    // Store behavioral events in batch
+    await Promise.all(
+      enrichedEvents.map(event => 
+        // Create or update user behavioral profile
+        UserEvent.findOneAndUpdate(
+          { userId: event.userId, type: event.type },
+          {
+            $set: {
+              userId: event.userId,
+              sessionId: event.sessionId,
+              type: event.type,
+              action: event.action,
+              data: event.data,
+              timestamp: event.timestamp,
+              userAgent: event.userAgent,
+              ip: event.ip
+            }
+          },
+          { upsert: true, new: true }
+        )
+      )
+    );
+    
+    // Update user behavioral summary
+    await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $inc: { totalEvents: enrichedEvents.length },
+        $set: {
+          lastActivity: new Date(),
+          behavioralProfile: {
+            engagementLevel: behavioralData.engagementLevel || 'UNKNOWN',
+            behaviorPatterns: behavioralData.behaviorPatterns || [],
+            interactionFrequency: behavioralData.interactionFrequency || {},
+            scrollSummary: behavioralData.scrollSummary,
+            mouseSummary: behavioralData.mouseSummary,
+            attentionSummary: behavioralData.attentionSummary
+          }
+        }
+      }
+    );
+    
+    res.json({ success: true, eventsProcessed: enrichedEvents.length });
+  } catch (error) {
+    console.error('Behavioral events error:', error);
+    next(error);
+  }
+});
 
 // USER STATISTICS ROUTES
 
