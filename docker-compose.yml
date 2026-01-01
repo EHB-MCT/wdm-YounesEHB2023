@@ -9,7 +9,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      MONGO_URI:
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV}
     depends_on:
       - mongo
 
@@ -20,7 +22,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL:
+      VITE_API_URL: http://localhost:5000
       CHOKIDAR_USEPOLLING: "true"
     depends_on:
       - backend
@@ -29,8 +31,8 @@ services:
     image: mongo
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME:
-      MONGO_INITDB_ROOT_PASSWORD:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo_data:/data/db
     ports:
@@ -43,9 +45,9 @@ services:
       - 8081:8081
     environment:
       ME_CONFIG_MONGODB_URL: ${MONGO_URI}
-      ME_CONFIG_BASICAUTH_ENABLED:
-      ME_CONFIG_BASICAUTH_USERNAME:
-      ME_CONFIG_BASICAUTH_PASSWORD:
+      ME_CONFIG_BASICAUTH_ENABLED: ${ME_CONFIG_BASICAUTH_ENABLED}
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
 
 volumes:
   mongo_data:
