@@ -1,0 +1,332 @@
+[
+	{
+		"id": 1,
+		"name": "Barbell Biceps Curl",
+		"muscleGroup": "Arms",
+		"equipment": "Barbell",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Stand with feet shoulder-width apart, holding barbell with underhand grip.",
+			"Keep elbows close to your sides.",
+			"Curl the weight toward your shoulders, contracting biceps.",
+			"Lower slowly to starting position.",
+			"Repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091408/barbell_biceps_curl_8_stwfnh.mp4"
+	},
+	{
+		"id": 2,
+		"name": "Bench Press",
+		"muscleGroup": "Chest",
+		"equipment": "Barbell, Bench",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Lie flat on a bench with feet on the floor.",
+			"Grip the bar slightly wider than shoulder width.",
+			"Lower the bar slowly to your chest.",
+			"Push it back up until your arms are fully extended.",
+			"Repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091408/bench_press_1_at61gr.mp4"
+	},
+	{
+		"id": 3,
+		"name": "Chest Fly Machine",
+		"muscleGroup": "Chest",
+		"equipment": "Fly Machine",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Sit with back flat against the pad.",
+			"Grab handles with elbows slightly bent.",
+			"Bring arms together in front of chest, squeezing pecs.",
+			"Slowly return to starting position.",
+			"Repeat for 10-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091408/chest_fly_machine_13_ajiqmy.mp4"
+	},
+	{
+		"id": 4,
+		"name": "Deadlift",
+		"muscleGroup": "Back",
+		"equipment": "Barbell",
+		"difficulty": "Advanced",
+		"instructions": [
+			"Stand with feet hip-width apart, bar over mid-foot.",
+			"Bend at hips and knees to grip the bar.",
+			"Keep back flat, chest up, and core tight.",
+			"Drive through heels to stand up, pulling bar along legs.",
+			"Lower bar with control and repeat for 5-8 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091412/deadlift_13_bnybgp.mp4"
+	},
+	{
+		"id": 5,
+		"name": "Decline Bench Press",
+		"muscleGroup": "Chest",
+		"equipment": "Barbell, Decline Bench",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Lie on a decline bench with feet secured.",
+			"Grip barbell slightly wider than shoulder width.",
+			"Lower bar to lower chest area.",
+			"Press upward until arms are fully extended.",
+			"Repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091422/decline_bench_press_fazgqz.mov"
+	},
+	{
+		"id": 6,
+		"name": "Hammer Curl",
+		"muscleGroup": "Arms",
+		"equipment": "Dumbbells",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Stand with dumbbells at sides, palms facing inward.",
+			"Keep elbows close to torso.",
+			"Curl weights up toward shoulders.",
+			"Lower slowly to starting position.",
+			"Repeat for 10-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091413/hammer_curl_13_rosbn7.mp4"
+	},
+	{
+		"id": 7,
+		"name": "Hip Thrust",
+		"muscleGroup": "Legs",
+		"equipment": "Barbell, Bench",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Sit on ground with upper back against bench.",
+			"Place barbell across hips (use padding).",
+			"Drive through heels to lift hips up.",
+			"Squeeze glutes at top, forming straight line from knees to shoulders.",
+			"Lower and repeat for 10-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091409/hip_thrust_13_pplzff.mp4"
+	},
+	{
+		"id": 8,
+		"name": "Incline Bench Press",
+		"muscleGroup": "Chest",
+		"equipment": "Barbell, Incline Bench",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Lie on an incline bench (30-45°).",
+			"Grip barbell slightly wider than shoulder width.",
+			"Lower bar to upper chest.",
+			"Press upward until arms are extended.",
+			"Repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091409/incline_bench_press_6_sonjwk.mp4"
+	},
+	{
+		"id": 9,
+		"name": "Lat Pulldown",
+		"muscleGroup": "Back",
+		"equipment": "Cable Machine",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Sit and grasp the bar wider than shoulder width.",
+			"Pull bar down to your upper chest.",
+			"Squeeze your lats and slowly release.",
+			"Keep torso stationary throughout movement.",
+			"Repeat for 10-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091411/lat_pulldown_30_zvnjl3.mp4"
+	},
+	{
+		"id": 10,
+		"name": "Lateral Raise",
+		"muscleGroup": "Shoulders",
+		"equipment": "Dumbbells",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Stand with dumbbells at your sides.",
+			"Keep slight bend in elbows.",
+			"Raise arms to shoulder height, leading with elbows.",
+			"Lower slowly back to start.",
+			"Repeat for 12-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091411/lateral_raise_9_tzzpia.mp4"
+	},
+	{
+		"id": 11,
+		"name": "Leg Extension",
+		"muscleGroup": "Legs",
+		"equipment": "Leg Extension Machine",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Sit with back against pad, ankles under roller.",
+			"Extend legs until fully straight.",
+			"Squeeze quadriceps at top.",
+			"Lower slowly to starting position.",
+			"Repeat for 12-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091410/leg_extension_17_mp4trd.mp4"
+	},
+	{
+		"id": 12,
+		"name": "Leg Raises",
+		"muscleGroup": "Core",
+		"equipment": "None",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Lie on back with legs straight.",
+			"Keep lower back pressed to floor.",
+			"Raise legs until perpendicular to ground.",
+			"Lower slowly without touching floor.",
+			"Repeat for 12-20 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091412/leg_raises_9_fnpoa9.mp4"
+	},
+	{
+		"id": 13,
+		"name": "Plank",
+		"muscleGroup": "Core",
+		"equipment": "None",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Start in push-up position on forearms.",
+			"Keep body in straight line from head to heels.",
+			"Engage core and squeeze glutes.",
+			"Hold for 30-60 seconds.",
+			"Breathe steadily throughout."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091414/plank_2_wiknjc.mp4"
+	},
+	{
+		"id": 14,
+		"name": "Pull Up",
+		"muscleGroup": "Back",
+		"equipment": "Pull-up Bar",
+		"difficulty": "Advanced",
+		"instructions": [
+			"Hang from bar with overhand grip, hands shoulder-width apart.",
+			"Pull yourself up until chin is over bar.",
+			"Squeeze shoulder blades together at top.",
+			"Lower yourself with control.",
+			"Repeat for 5-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091410/pull_up_10_bthnre.mp4"
+	},
+	{
+		"id": 15,
+		"name": "Push-up",
+		"muscleGroup": "Chest",
+		"equipment": "None",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Start in plank position with hands shoulder-width apart.",
+			"Lower body until chest nearly touches floor.",
+			"Keep elbows at 45-degree angle.",
+			"Push back up to starting position.",
+			"Repeat for 10-20 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091409/push-up_22_vjwkwc.mp4"
+	},
+	{
+		"id": 16,
+		"name": "Romanian Deadlift",
+		"muscleGroup": "Legs",
+		"equipment": "Barbell",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Stand holding barbell at hip level.",
+			"Keep knees slightly bent and back straight.",
+			"Lower bar by pushing hips back.",
+			"Feel stretch in hamstrings, bar stays close to legs.",
+			"Return to start and repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091413/romanian_deadlift_5_in0dyh.mp4"
+	},
+	{
+		"id": 17,
+		"name": "Russian Twist",
+		"muscleGroup": "Core",
+		"equipment": "Weight Plate or Medicine Ball",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Sit with knees bent, feet off floor.",
+			"Lean back slightly, holding weight at chest.",
+			"Rotate torso to touch weight beside hip.",
+			"Twist to other side.",
+			"Repeat for 20-30 total reps (10-15 per side)."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091410/russian_twist_3_dihe6d.mp4"
+	},
+	{
+		"id": 18,
+		"name": "Shoulder Press",
+		"muscleGroup": "Shoulders",
+		"equipment": "Dumbbells",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Sit or stand with dumbbells at shoulder height.",
+			"Press weights overhead until arms are extended.",
+			"Keep core tight and avoid arching back.",
+			"Lower slowly back to shoulders.",
+			"Repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091415/shoulder_press_5_a1n1yw.mp4"
+	},
+	{
+		"id": 19,
+		"name": "Squat",
+		"muscleGroup": "Legs",
+		"equipment": "Barbell",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Position barbell on upper traps.",
+			"Stand with feet shoulder-width apart.",
+			"Lower your hips until thighs are parallel to floor.",
+			"Keep chest up and knees tracking over toes.",
+			"Push through heels to return to start."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091421/squat_15_o9qpd6.mp4"
+	},
+	{
+		"id": 20,
+		"name": "T-Bar Row",
+		"muscleGroup": "Back",
+		"equipment": "T-Bar Row Machine",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Straddle the bar with bent knees and flat back.",
+			"Grip handles with both hands.",
+			"Pull bar toward chest, squeezing shoulder blades.",
+			"Lower under control.",
+			"Repeat for 8-12 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091411/t_bar_row_10_tuxzhx.mp4"
+	},
+	{
+		"id": 21,
+		"name": "Tricep Dips",
+		"muscleGroup": "Arms",
+		"equipment": "Parallel Bars or Bench",
+		"difficulty": "Intermediate",
+		"instructions": [
+			"Grip bars or bench edge, arms extended.",
+			"Lower body by bending elbows to 90 degrees.",
+			"Keep elbows close to body.",
+			"Push back up to starting position.",
+			"Repeat for 8-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091410/tricep_dips_13_elc4tw.mp4"
+	},
+	{
+		"id": 22,
+		"name": "Tricep Pushdown",
+		"muscleGroup": "Arms",
+		"equipment": "Cable Machine",
+		"difficulty": "Beginner",
+		"instructions": [
+			"Stand facing cable machine, grip bar with palms down.",
+			"Keep elbows at sides.",
+			"Push down until arms are straight.",
+			"Squeeze triceps at bottom.",
+			"Slowly return to start and repeat for 10-15 reps."
+		],
+		"video": "https://res.cloudinary.com/dqc8nbwtd/video/upload/v1760091413/tricep_pushdown_46_mzhet9.mp4"
+	}
+]

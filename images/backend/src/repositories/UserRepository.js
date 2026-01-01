@@ -1,0 +1,20 @@
+import User from "../models/User.js";
+
+export class UserRepository {
+	async findByEmail(email) {
+		return await User.findOne({ email });
+	}
+
+	async findById(id) {
+		return await User.findById(id).select("-password");
+	}
+
+	async create(userData) {
+		const user = new User(userData);
+		return await user.save();
+	}
+
+	async getAll() {
+		return await User.find().select("-password");
+	}
+}
