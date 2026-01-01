@@ -48,7 +48,8 @@ cd wdm-YounesEHB2023
 # Copy environment template
 cp .env.example .env
 
-# Edit .env with your configuration
+# IMPORTANT: Edit .env with your actual values
+# Replace placeholder passwords with secure values
 nano .env  # or use your preferred editor
 ```
 
@@ -60,15 +61,20 @@ JWT_SECRET=your-super-secret-jwt-key-here
 NODE_ENV=development
 
 # MongoDB Configuration
-MONGO_INITDB_ROOT_USERNAME=your_mongo_username
-MONGO_INITDB_ROOT_PASSWORD=your_mongo_password
-MONGO_URI=mongodb://your_mongo_username:your_mongo_password@mongo:27017/
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=your_secure_password_here
+MONGO_URI=mongodb://admin:your_secure_password_here@mongo:27017/
 
 # Database Admin Interface
 ME_CONFIG_BASICAUTH_ENABLED=true
-ME_CONFIG_BASICAUTH_USERNAME=your_admin_username
-ME_CONFIG_BASICAUTH_PASSWORD=your_admin_password
+ME_CONFIG_BASICAUTH_USERNAME=admin
+ME_CONFIG_BASICAUTH_PASSWORD=your_admin_password_here
 ```
+
+**⚠️ Important Notes:**
+- Replace `your_secure_password_here` with actual strong passwords
+- Replace `your-super-secret-jwt-key-here` with a random secret string
+- The `.env` file is automatically ignored by Git (see .gitignore)
 
 #### 3. **Start Development Environment**
 
