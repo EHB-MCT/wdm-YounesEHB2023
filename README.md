@@ -63,7 +63,8 @@ NODE_ENV=development
 # MongoDB Configuration
 MONGO_INITDB_ROOT_USERNAME=admin
 MONGO_INITDB_ROOT_PASSWORD=your_secure_password_here
-MONGO_URI=mongodb://admin:your_secure_password_here@mongo:27017/
+MONGO_INITDB_DATABASE=dev5
+MONGO_URI=mongodb://admin:your_secure_password_here@mongo:27017/dev5?authSource=admin
 
 # Database Admin Interface
 ME_CONFIG_BASICAUTH_ENABLED=true
@@ -74,6 +75,7 @@ ME_CONFIG_BASICAUTH_PASSWORD=your_admin_password_here
 **⚠️ Important Notes:**
 - Replace `your_secure_password_here` with actual strong passwords
 - Replace `your-super-secret-jwt-key-here` with a random secret string
+- **Critical**: Keep `/dev5?authSource=admin` in MONGO_URI - this ensures proper MongoDB authentication
 - The `.env` file is automatically ignored by Git (see .gitignore)
 
 #### 3. **Start Development Environment**
