@@ -171,6 +171,9 @@ docker compose up mongo mongo-express
 - [Best Chart Libraries for Data Visualization](https://www.youtube.com/watch?v=k7-OCIU5-J8) *(YouTube)*
 - [Docker in 7 Easy Steps for Beginners](https://www.youtube.com/watch?v=gAkwW2tuIqE) *(YouTube)*
 - [Simple Guide to Containerization for Beginners](https://dev.to/mukhilpadmanabhan/a-simple-guide-to-containerization-for-beginners-docker-26kc) *(Dev.to)*
+- [used for main conversation during this project](https://chatgpt.com/share/68dec5f1-5778-8007-a178-2b35d6a3a471)
+- [Media download gym exercises](https://www.kaggle.com/datasets/hasyimabdillah/workoutfitness-video?resource=download)
+
 
 ---
 
