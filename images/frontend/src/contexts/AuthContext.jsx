@@ -17,31 +17,33 @@ export function AuthProvider({ children }) {
         const adminStatus = localStorage.getItem("isAdmin") === "true";
         
         if (storedToken) {
-          try {
-            // Validate token with backend before accepting
-            const response = await api.get('/api/auth/validate');
-            
-            if (response) {
-              setToken(storedToken);
-              setIsAdmin(adminStatus);
-              setUser(response.userId);
-            } else {
-              // Invalid token, clear it
-              clearAuthData();
+          // For stored tokens, trust them immediately without validation
+          // This prevents race condition and keeps users logged in on page reload
+          setToken(storedToken);
+          setIsAdmin(adminStatus);
+          setIsAuthLoading(false);
+          
+          // Optional: Background validation for security (but don't clear auth data on failure)
+          setTimeout(async () => {
+            try {
+              const response = await api.get('/api/auth/validate');
+              if (response) {
+                setUser(response.userId);
+              }
+            } catch (error) {
+              console.log('Background validation failed, keeping user logged in');
             }
-          } catch (error) {
-            // If validation fails, clear the invalid token
-            console.warn('Token validation failed, clearing auth data');
-            clearAuthData();
-          }
+          }, 2000); // Longer delay to prevent interference
         } else {
           setIsAdmin(adminStatus);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         setAuthError(error);
-        // Clear potentially invalid tokens
-        clearAuthData();
+        // Only clear auth data if it's clearly an initialization error, not validation failure
+        if (!localStorage.getItem("token")) {
+          clearAuthData();
+        }
       } finally {
         setIsAuthLoading(false);
       }
